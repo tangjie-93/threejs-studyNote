@@ -471,6 +471,13 @@ function WebGLLights( extensions ) {
 
 	}
 
+	/**
+	 * 设置视图中的光源信息
+	 *
+	 * @param lights 光源数组
+	 * @param camera 相机实例
+	 * @returns 无返回值
+	 */
 	function setupView( lights, camera ) {
 
 		let directionalLength = 0;
@@ -478,7 +485,7 @@ function WebGLLights( extensions ) {
 		let spotLength = 0;
 		let rectAreaLength = 0;
 		let hemiLength = 0;
-
+		//视图矩阵 用于后续光源的位置和方向变换
 		const viewMatrix = camera.matrixWorldInverse;
 
 		for ( let i = 0, l = lights.length; i < l; i ++ ) {

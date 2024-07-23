@@ -1319,27 +1319,27 @@ class WebGLRenderer {
 			const visible = object.layers.test( camera.layers );
 
 			if ( visible ) {
-
+				//判断是否是群组
 				if ( object.isGroup ) {
 
 					groupOrder = object.renderOrder;
-
+				// 判断是否是LOD
 				} else if ( object.isLOD ) {
 
 					if ( object.autoUpdate === true ) object.update( camera );
-
+				//判断是否是光源
 				} else if ( object.isLight ) {
 
 					currentRenderState.pushLight( object );
-
+					//判断是否产生阴影
 					if ( object.castShadow ) {
 
 						currentRenderState.pushShadow( object );
 
 					}
-
+				// 判断是否是精灵
 				} else if ( object.isSprite ) {
-
+					//物体不在视锥体外或者与视锥体相交
 					if ( ! object.frustumCulled || _frustum.intersectsSprite( object ) ) {
 
 						if ( sortObjects ) {
@@ -1351,7 +1351,7 @@ class WebGLRenderer {
 
 						const geometry = objects.update( object );
 						const material = object.material;
-
+						// 材质是否可见
 						if ( material.visible ) {
 
 							currentRenderList.push( object, geometry, material, groupOrder, _vector4.z, null );
@@ -1359,9 +1359,9 @@ class WebGLRenderer {
 						}
 
 					}
-
+					// 判断是否是网格\线\点
 				} else if ( object.isMesh || object.isLine || object.isPoints ) {
-
+					//物体不在视锥体外或者与视锥体相交
 					if ( ! object.frustumCulled || _frustum.intersectsObject( object ) ) {
 
 						const geometry = objects.update( object );
@@ -1370,12 +1370,12 @@ class WebGLRenderer {
 						if ( sortObjects ) {
 
 							if ( object.boundingSphere !== undefined ) {
-
+								//计算包围球
 								if ( object.boundingSphere === null ) object.computeBoundingSphere();
 								_vector4.copy( object.boundingSphere.center );
 
 							} else {
-
+								//计算包围球
 								if ( geometry.boundingSphere === null ) geometry.computeBoundingSphere();
 								_vector4.copy( geometry.boundingSphere.center );
 
