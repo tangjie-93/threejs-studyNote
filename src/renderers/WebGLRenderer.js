@@ -56,22 +56,21 @@ import { WebGLMaterials } from './webgl/WebGLMaterials.js';
 import { WebGLUniformsGroups } from './webgl/WebGLUniformsGroups.js';
 import { createCanvasElement, probeAsync } from '../utils.js';
 import { ColorManagement } from '../math/ColorManagement.js';
-
 class WebGLRenderer {
-
+	//WebGL API https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext
 	constructor( parameters = {} ) {
-
+		// 构造函数的参数
 		const {
 			canvas = createCanvasElement(),
-			context = null,
-			depth = true,
-			stencil = false,
-			alpha = false,
-			antialias = false,
-			premultipliedAlpha = true,
-			preserveDrawingBuffer = false,
-			powerPreference = 'default',
-			failIfMajorPerformanceCaveat = false,
+			context = null, // 即gl	context = canvas.getContext( 'webgl', { alpha: false } ),
+			depth = true, //绘图缓存是否有一个至少6位的深度缓存(depth buffer )
+			stencil = false,//绘图缓存是否有一个至少8位的模板缓存
+			alpha = false,// controls the default clear alpha value. When set to true, the value is 0. Otherwise it's 1. Default is false
+			antialias = false,//是否执行抗锯齿
+			premultipliedAlpha = true,// renderer是否假设颜色有 premultiplied alpha
+			preserveDrawingBuffer = false,//是否保留缓直到手动清除或被覆盖
+			powerPreference = 'default',// 提示用户代理怎样的配置更适用于当前WebGL环境
+			failIfMajorPerformanceCaveat = false,//检测渲染器是否会因性能过差而创建失败
 		} = parameters;
 
 		this.isWebGLRenderer = true;
@@ -93,21 +92,22 @@ class WebGLRenderer {
 			_alpha = alpha;
 
 		}
-
 		const uintClearColor = new Uint32Array( 4 );
 		const intClearColor = new Int32Array( 4 );
-
+		// 当前渲染列表
 		let currentRenderList = null;
+		// 当前渲染状态
 		let currentRenderState = null;
 
 		// render() can be called from within a callback triggered by another render.
 		// We track this so that the nested render call gets its list and state isolated from the parent render call.
-
+		// 渲染列表栈
 		const renderListStack = [];
+		// 渲染状态栈
 		const renderStateStack = [];
 
 		// public properties
-
+		// 公共属性
 		this.domElement = canvas;
 
 		// Debug configuration container
@@ -117,7 +117,7 @@ class WebGLRenderer {
 			 * Enables error checking and reporting when shader programs are being compiled
 			 * @type {boolean}
 			 */
-			checkShaderErrors: true,
+			checkShaderErrors: true,// 检查材质着色器程序 编译和链接过程中的错误
 			/**
 			 * Callback for custom error reporting.
 			 * @type {?Function}
@@ -126,23 +126,23 @@ class WebGLRenderer {
 		};
 
 		// clearing
-
+		// 渲染器是否在渲染每一帧之前自动清除
 		this.autoClear = true;
 		this.autoClearColor = true;
 		this.autoClearDepth = true;
 		this.autoClearStencil = true;
 
 		// scene graph
-
+		// 定义渲染器是否应对对象进行排序,主要是针对透明及半透明的物体
 		this.sortObjects = true;
 
 		// user-defined clipping
-
+		// 用户自定义的剪裁平面，在世界空间中被指定为THREE.Plane对象
 		this.clippingPlanes = [];
 		this.localClippingEnabled = false;
 
 		// physically based shading
-
+		// 渲染器的输出编码
 		this._outputColorSpace = SRGBColorSpace;
 
 		// tone mapping
@@ -153,7 +153,7 @@ class WebGLRenderer {
 		// internal properties
 
 		const _this = this;
-
+		// 上下文是否丢失
 		let _isContextLost = false;
 
 		// internal state cache
@@ -216,6 +216,13 @@ class WebGLRenderer {
 
 		let _gl = context;
 
+		/**
+		 * 获取绘图上下文
+		 *
+		 * @param contextName 上下文名称，例如 '2d'、'webgl'、'webgl2' 等
+		 * @param contextAttributes 上下文属性，可选参数，一个包含可选属性的对象
+		 * @returns 返回一个表示绘图上下文的对象，如果获取失败则返回 null
+		 */
 		function getContext( contextName, contextAttributes ) {
 
 			return canvas.getContext( contextName, contextAttributes );
@@ -223,7 +230,7 @@ class WebGLRenderer {
 		}
 
 		try {
-
+			// 上下文属性
 			const contextAttributes = {
 				alpha: true,
 				depth,
@@ -239,10 +246,12 @@ class WebGLRenderer {
 			if ( 'setAttribute' in canvas ) canvas.setAttribute( 'data-engine', `three.js r${REVISION}` );
 
 			// event listeners must be registered before WebGL context is created, see #12753
+			// 监听上下文丢失事件
 			canvas.addEventListener( 'webglcontextlost', onContextLost, false );
+			// 监听上下文恢复事件
 			canvas.addEventListener( 'webglcontextrestored', onContextRestore, false );
 			canvas.addEventListener( 'webglcontextcreationerror', onContextCreationError, false );
-
+			// 创建 WebGL 上下文
 			if ( _gl === null ) {
 
 				const contextName = 'webgl2';
@@ -280,41 +289,77 @@ class WebGLRenderer {
 
 		let utils, bindingStates, uniformsGroups;
 
+		/**
+		 * 初始化WebGL上下文
+		 */
 		function initGLContext() {
-
+			// 初始化 WebGL 扩展
 			extensions = new WebGLExtensions( _gl );
 			extensions.init();
 
+			// 初始化 WebGL 实用工具
 			utils = new WebGLUtils( _gl, extensions );
 
+			// 初始化 WebGL 功能
 			capabilities = new WebGLCapabilities( _gl, extensions, parameters, utils );
 
+			// 初始化 WebGL 状态
 			state = new WebGLState( _gl );
 
+			// 初始化 WebGL 信息
 			info = new WebGLInfo( _gl );
+			// 初始化 WebGL 属性
 			properties = new WebGLProperties();
+
+			// 初始化 WebGL 纹理
 			textures = new WebGLTextures( _gl, extensions, state, properties, capabilities, utils, info );
+			// 初始化 WebGL 立方体纹理
 			cubemaps = new WebGLCubeMaps( _this );
+			// 初始化 WebGL 立方体 UV 纹理
 			cubeuvmaps = new WebGLCubeUVMaps( _this );
+
+			// 初始化 WebGL 属性
 			attributes = new WebGLAttributes( _gl );
+			// 初始化 WebGL 绑定状态
 			bindingStates = new WebGLBindingStates( _gl, attributes );
+
+			// 初始化 WebGL 几何体
 			geometries = new WebGLGeometries( _gl, attributes, info, bindingStates );
+			// 初始化 WebGL 对象
 			objects = new WebGLObjects( _gl, geometries, attributes, info );
+
+			// 初始化 WebGL 变形目标
 			morphtargets = new WebGLMorphtargets( _gl, capabilities, textures );
+			// 初始化 WebGL 裁剪
 			clipping = new WebGLClipping( properties );
+
+			// 初始化 WebGL 程序缓存
 			programCache = new WebGLPrograms( _this, cubemaps, cubeuvmaps, extensions, capabilities, bindingStates, clipping );
+			// 初始化 WebGL 材质
 			materials = new WebGLMaterials( _this, properties );
+
+			// 初始化 WebGL 渲染列表
 			renderLists = new WebGLRenderLists();
+			// 初始化 WebGL 渲染状态
 			renderStates = new WebGLRenderStates( extensions );
+
+			// 初始化 WebGL 背景
 			background = new WebGLBackground( _this, cubemaps, cubeuvmaps, state, objects, _alpha, premultipliedAlpha );
+			// 初始化 WebGL 阴影贴图
 			shadowMap = new WebGLShadowMap( _this, objects, capabilities );
+
+			// 初始化 WebGL 均匀变量组
 			uniformsGroups = new WebGLUniformsGroups( _gl, info, capabilities, state );
 
+			// 初始化 WebGL 缓冲区渲染器
 			bufferRenderer = new WebGLBufferRenderer( _gl, extensions, info );
+			// 初始化 WebGL 索引缓冲区渲染器
 			indexedBufferRenderer = new WebGLIndexedBufferRenderer( _gl, extensions, info );
 
+			// 设置 WebGLInfo 的 programs 属性
 			info.programs = programCache.programs;
 
+			// 设置 this 的属性
 			_this.capabilities = capabilities;
 			_this.extensions = extensions;
 			_this.properties = properties;
@@ -322,7 +367,6 @@ class WebGLRenderer {
 			_this.shadowMap = shadowMap;
 			_this.state = state;
 			_this.info = info;
-
 		}
 
 		initGLContext();
@@ -333,40 +377,40 @@ class WebGLRenderer {
 
 		this.xr = xr;
 
-		// API
+		// 获取webgl上下文
 
 		this.getContext = function () {
 
 			return _gl;
 
 		};
-
+		// 获取webgl上下文属性
 		this.getContextAttributes = function () {
 
 			return _gl.getContextAttributes();
 
 		};
-
+		// 模拟WebGL环境的丢失。需要支持 WEBGL_lose_context 扩展才能用。
 		this.forceContextLoss = function () {
 
 			const extension = extensions.get( 'WEBGL_lose_context' );
 			if ( extension ) extension.loseContext();
 
 		};
-
+		//模拟WebGL环境的恢复。需要支持 WEBGL_lose_context 扩展才能用。
 		this.forceContextRestore = function () {
 
 			const extension = extensions.get( 'WEBGL_lose_context' );
 			if ( extension ) extension.restoreContext();
 
 		};
-
+		// 获取像素比
 		this.getPixelRatio = function () {
 
 			return _pixelRatio;
 
 		};
-
+		// 获取像素比
 		this.setPixelRatio = function ( value ) {
 
 			if ( value === undefined ) return;
@@ -376,13 +420,13 @@ class WebGLRenderer {
 			this.setSize( _width, _height, false );
 
 		};
-
+		// 返回包含渲染器输出canvas的宽度和高度(单位像素)的对象
 		this.getSize = function ( target ) {
 
 			return target.set( _width, _height );
 
 		};
-
+		// 设置画布大小
 		this.setSize = function ( width, height, updateStyle = true ) {
 
 			if ( xr.isPresenting ) {
@@ -408,13 +452,13 @@ class WebGLRenderer {
 			this.setViewport( 0, 0, width, height );
 
 		};
-
+		// 返回一个包含渲染器绘图缓存宽度和高度(单位像素)的对象
 		this.getDrawingBufferSize = function ( target ) {
 
 			return target.set( _width * _pixelRatio, _height * _pixelRatio ).floor();
 
 		};
-
+		// 设置绘图缓存大小
 		this.setDrawingBufferSize = function ( width, height, pixelRatio ) {
 
 			_width = width;
@@ -440,7 +484,7 @@ class WebGLRenderer {
 			return target.copy( _viewport );
 
 		};
-
+		// 设置视口大小
 		this.setViewport = function ( x, y, width, height ) {
 
 			if ( x.isVector4 ) {
@@ -537,6 +581,7 @@ class WebGLRenderer {
 
 				// check if we're trying to clear an integer target
 				let isIntegerFormat = false;
+				// check if the current render target is an integer format
 				if ( _currentRenderTarget !== null ) {
 
 					const targetFormat = _currentRenderTarget.texture.format;
@@ -620,8 +665,7 @@ class WebGLRenderer {
 
 		};
 
-		//
-
+		// 内存释放 移除事件监听
 		this.dispose = function () {
 
 			canvas.removeEventListener( 'webglcontextlost', onContextLost, false );
@@ -649,6 +693,11 @@ class WebGLRenderer {
 
 		// Events
 
+		/**
+		 * 上下文丢失时的回调函数
+		 *
+		 * @param {Event} event - 上下文丢失事件
+		 */
 		function onContextLost( event ) {
 
 			event.preventDefault();
@@ -659,6 +708,11 @@ class WebGLRenderer {
 
 		}
 
+		/**
+		 * 当 WebGL 渲染上下文恢复时触发的回调函数
+		 *
+		 * @param {Event} [event] - 事件对象（未在此函数中使用）
+		 */
 		function onContextRestore( /* event */ ) {
 
 			console.log( 'THREE.WebGLRenderer: Context Restored.' );
@@ -681,6 +735,11 @@ class WebGLRenderer {
 
 		}
 
+		/**
+		 * WebGL 上下文创建错误时的回调函数
+		 *
+		 * @param {Event} event - 事件对象，包含关于错误的详细信息
+		 */
 		function onContextCreationError( event ) {
 
 			console.error( 'THREE.WebGLRenderer: A WebGL context could not be created. Reason: ', event.statusMessage );

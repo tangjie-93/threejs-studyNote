@@ -43,13 +43,14 @@
 				scene.add( mesh );
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				//设置DPR
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置渲染尺寸
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.setAnimationLoop( animate );
 				document.body.appendChild( renderer.domElement );
 
 				//
-
 				window.addEventListener( 'resize', onWindowResize );
 
 			}

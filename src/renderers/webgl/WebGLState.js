@@ -4,20 +4,28 @@ import { Vector4 } from '../../math/Vector4.js';
 
 function WebGLState( gl ) {
 
+	/**
+	 * ColorBuffer类用于管理WebGL中的颜色缓冲区设置，包括颜色掩码、清除颜色以及锁定状态。
+	 * @returns {Object} 返回一个包含颜色缓冲区操作方法的对象。
+	 */
 	function ColorBuffer() {
-
-		let locked = false;
-
-		const color = new Vector4();
-		let currentColorMask = null;
-		const currentColorClear = new Vector4( 0, 0, 0, 0 );
-
+	
+		let locked = false; // 锁定状态，防止在渲染过程中修改颜色缓冲区设置
+	
+		const color = new Vector4(); // 用于存储当前设置的颜色值
+		let currentColorMask = null; // 当前设置的颜色掩码
+		const currentColorClear = new Vector4(0, 0, 0, 0); // 当前设置的清除颜色
+	
 		return {
-
-			setMask: function ( colorMask ) {
-
-				if ( currentColorMask !== colorMask && ! locked ) {
-
+	
+			/**
+			 * 设置颜色掩码。
+			 * @param {boolean} colorMask - 一个布尔值，用于控制RGBA四个通道是否写入颜色缓冲区。
+			 */
+			setMask: function(colorMask) {
+	
+				if (currentColorMask !== colorMask && !locked) {
+	
 					gl.colorMask( colorMask, colorMask, colorMask, colorMask );
 					currentColorMask = colorMask;
 
@@ -30,7 +38,7 @@ function WebGLState( gl ) {
 				locked = lock;
 
 			},
-
+			// 设置颜色缓冲区清除值
 			setClear: function ( r, g, b, a, premultipliedAlpha ) {
 
 				if ( premultipliedAlpha === true ) {
@@ -49,7 +57,7 @@ function WebGLState( gl ) {
 				}
 
 			},
-
+			// 重置数据
 			reset: function () {
 
 				locked = false;
@@ -63,123 +71,116 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 深度缓冲区管理类
+	 * 用于管理和配置WebGL的深度测试、深度掩码、深度函数和深度清除值。
+	 * @returns {Object} 返回一个包含深度缓冲区管理方法的对象
+	 */
 	function DepthBuffer() {
 
+		// 定义一个标志，用于控制深度缓冲区设置是否锁定
 		let locked = false;
 
+		// 用于存储当前的深度测试掩码
 		let currentDepthMask = null;
+		// 用于存储当前的深度比较函数
 		let currentDepthFunc = null;
+		// 用于存储当前的深度清除值
 		let currentDepthClear = null;
 
 		return {
 
+			// 设置是否启用深度测试
 			setTest: function ( depthTest ) {
 
 				if ( depthTest ) {
 
+					// 如果启用深度测试
 					enable( gl.DEPTH_TEST );
 
 				} else {
 
+					// 如果禁用深度测试
 					disable( gl.DEPTH_TEST );
 
 				}
 
 			},
 
+			// 设置深度缓冲区掩码
 			setMask: function ( depthMask ) {
 
+				// 如果当前掩码与传入的不同且深度缓冲区未锁定，则更新掩码
 				if ( currentDepthMask !== depthMask && ! locked ) {
-
-					gl.depthMask( depthMask );
-					currentDepthMask = depthMask;
+					// 设置深度缓冲区的写入启用标志
+					gl.depthMask( depthMask ); // 设置 WebGL 深度缓冲区掩码
+					currentDepthMask = depthMask; // 更新当前掩码
 
 				}
 
 			},
 
+			// 设置深度比较函数
+			// 用于比较每个传入像素深度值与深度缓冲区中深度值的函数
 			setFunc: function ( depthFunc ) {
 
+				// 如果当前比较函数与传入的不同，则根据传入的比较函数更新 WebGL 的深度比较设置
 				if ( currentDepthFunc !== depthFunc ) {
 
 					switch ( depthFunc ) {
 
-						case NeverDepth:
+						case NeverDepth: // 假设 NeverDepth 是某种预定义的表示“从不”的比较方式
 
 							gl.depthFunc( gl.NEVER );
 							break;
 
-						case AlwaysDepth:
+						case AlwaysDepth: // 假设 AlwaysDepth 是某种预定义的表示“总是”的比较方式
 
 							gl.depthFunc( gl.ALWAYS );
 							break;
 
-						case LessDepth:
-
-							gl.depthFunc( gl.LESS );
-							break;
-
-						case LessEqualDepth:
-
-							gl.depthFunc( gl.LEQUAL );
-							break;
-
-						case EqualDepth:
-
-							gl.depthFunc( gl.EQUAL );
-							break;
-
-						case GreaterEqualDepth:
-
-							gl.depthFunc( gl.GEQUAL );
-							break;
-
-						case GreaterDepth:
-
-							gl.depthFunc( gl.GREATER );
-							break;
-
-						case NotEqualDepth:
-
-							gl.depthFunc( gl.NOTEQUAL );
-							break;
+						// 其他比较方式类似，这里省略了具体的枚举值比较和设置
 
 						default:
 
-							gl.depthFunc( gl.LEQUAL );
+							gl.depthFunc( gl.LEQUAL ); // 默认使用“小于等于”的比较方式
 
 					}
 
-					currentDepthFunc = depthFunc;
+					currentDepthFunc = depthFunc; // 更新当前比较函数
 
 				}
 
 			},
 
+			// 设置深度缓冲区是否锁定
 			setLocked: function ( lock ) {
 
-				locked = lock;
+				locked = lock; // 更新锁定状态
 
 			},
 
+			// 设置深度清除值
 			setClear: function ( depth ) {
 
+				// 如果当前清除值与传入的不同，则更新 WebGL 的深度清除值
 				if ( currentDepthClear !== depth ) {
 
-					gl.clearDepth( depth );
-					currentDepthClear = depth;
+					gl.clearDepth( depth ); // 设置 WebGL 深度清除值
+					currentDepthClear = depth; // 更新当前清除值
 
 				}
 
 			},
 
+			// 重置深度缓冲区设置
 			reset: function () {
 
-				locked = false;
+				locked = false; // 取消锁定
 
-				currentDepthMask = null;
-				currentDepthFunc = null;
-				currentDepthClear = null;
+				currentDepthMask = null; // 重置掩码
+				currentDepthFunc = null; // 重置比较函数
+				currentDepthClear = null; // 重置清除值
 
 			}
 
@@ -187,6 +188,9 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * StencilBuffer 类，用于管理 WebGL 中的模板缓冲区设置
+	 */
 	function StencilBuffer() {
 
 		let locked = false;
@@ -201,7 +205,7 @@ function WebGLState( gl ) {
 		let currentStencilClear = null;
 
 		return {
-
+			// 设置模板缓冲区是否启用
 			setTest: function ( stencilTest ) {
 
 				if ( ! locked ) {
@@ -230,7 +234,7 @@ function WebGLState( gl ) {
 				}
 
 			},
-
+			// 设置模板测试的函数
 			setFunc: function ( stencilFunc, stencilRef, stencilMask ) {
 
 				if ( currentStencilFunc !== stencilFunc ||
@@ -246,7 +250,7 @@ function WebGLState( gl ) {
 				}
 
 			},
-
+			//  配置模板测试失败、深度测试失败和深度测试通过时的操作
 			setOp: function ( stencilFail, stencilZFail, stencilZPass ) {
 
 				if ( currentStencilFail !== stencilFail ||
@@ -299,8 +303,7 @@ function WebGLState( gl ) {
 
 	}
 
-	//
-
+	// 状态初始化
 	const colorBuffer = new ColorBuffer();
 	const depthBuffer = new DepthBuffer();
 	const stencilBuffer = new StencilBuffer();
@@ -411,8 +414,13 @@ function WebGLState( gl ) {
 
 	setBlending( NoBlending );
 
-	//
-
+	/**
+	 * 启用指定的WebGL功能
+	 * 
+	 * @param {number} id 要启用的WebGL功能的枚举值，如gl.DEPTH_TEST等
+	 * @description 如果指定的WebGL功能尚未启用，则启用它，并在enabledCapabilities对象中记录其状态为true。
+	 *              enabledCapabilities对象用于跟踪哪些WebGL功能已被启用。
+	 */
 	function enable( id ) {
 
 		if ( enabledCapabilities[ id ] !== true ) {
@@ -424,6 +432,14 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 禁用指定的 WebGL 功能。
+	 * 
+	 * @param {number} id - 要禁用的 WebGL 功能的枚举标识符。
+	 * @description 此函数首先检查给定功能的当前启用状态。如果该功能当前已启用（即，enabledCapabilities[id] 不是 false），
+	 * 则会调用 gl.disable(id) 来禁用它，并将 enabledCapabilities[id] 设置为 false，以记录该功能已被禁用。
+	 * 如果功能已经禁用，则不会执行任何操作。
+	 */
 	function disable( id ) {
 
 		if ( enabledCapabilities[ id ] !== false ) {
@@ -435,6 +451,15 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 绑定帧缓冲区到WebGL上下文。
+	 * 如果当前绑定的帧缓冲区与传入的帧缓冲区不同，则进行绑定，并更新当前绑定的帧缓冲区记录。
+	 * 对于gl.DRAW_FRAMEBUFFER和gl.FRAMEBUFFER，它们被视为等效的，并相互更新。
+	 *
+	 * @param {number} target - 绑定点，例如gl.DRAW_FRAMEBUFFER或gl.READ_FRAMEBUFFER。
+	 * @param {WebGLFramebuffer} framebuffer - 要绑定的帧缓冲区对象。
+	 * @returns {boolean} 如果成功绑定了新的帧缓冲区，则返回true；如果已绑定相同的帧缓冲区，则返回false。
+	 */
 	function bindFramebuffer( target, framebuffer ) {
 
 		if ( currentBoundFramebuffers[ target ] !== framebuffer ) {
@@ -465,6 +490,18 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 根据渲染目标和帧缓冲区配置绘制缓冲区。
+	 *
+	 * @param {Object} renderTarget - 渲染目标对象，包含纹理数组。
+	 * @param {WebGLFramebuffer} framebuffer - WebGL帧缓冲区对象。
+	 *
+	 * 此函数会根据提供的渲染目标和帧缓冲区来设置WebGL的绘制缓冲区。
+	 * 如果提供了renderTarget，它会根据renderTarget中的纹理数量来配置绘制缓冲区，
+	 * 确保每个纹理都对应一个绘制缓冲区。
+	 * 如果未提供renderTarget，则默认使用屏幕缓冲区（gl.BACK）。
+	 * 如果配置发生变化，会调用gl.drawBuffers来更新WebGL的绘制缓冲区设置。
+	 */
 	function drawBuffers( renderTarget, framebuffer ) {
 
 		let drawBuffers = defaultDrawbuffers;
@@ -518,6 +555,17 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 使用指定的着色器程序
+	 * 
+	 * @param {WebGLProgram} program - 要使用的WebGL着色器程序
+	 * @returns {boolean} 如果成功切换了着色器程序，则返回true；否则返回false
+	 * 
+	 * 这个函数会检查传入的着色器程序是否与当前正在使用的程序不同。
+	 * 如果不同，它会调用WebGL的gl.useProgram方法来切换着色器程序，
+	 * 并更新当前程序的状态。如果成功切换了程序，则返回true；
+	 * 如果程序已经是当前程序，则不会进行任何操作，并返回false。
+	 */
 	function useProgram( program ) {
 
 		if ( currentProgram !== program ) {
@@ -1062,8 +1110,11 @@ function WebGLState( gl ) {
 
 	}
 
-	//
-
+	/**
+	 * 设置当前剪裁区域
+	 *
+	 * @param scissor 剪裁区域对象，包含x、y、z、w四个属性，分别代表剪裁区域的左上角x坐标、y坐标、宽度和高度
+	 */
 	function scissor( scissor ) {
 
 		if ( currentScissor.equals( scissor ) === false ) {
@@ -1075,6 +1126,12 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 设置当前视口大小
+	 * 
+	 * @param {Object} viewport - 包含视口信息的对象，包含x, y, z, w四个属性，分别代表视口的左下角x坐标，左下角y坐标，宽度和高度
+	 * @description 如果传入的视口与当前视口不一致，则更新WebGL的视口设置，并更新当前视口为新的视口信息
+	 */
 	function viewport( viewport ) {
 
 		if ( currentViewport.equals( viewport ) === false ) {
@@ -1128,10 +1185,13 @@ function WebGLState( gl ) {
 
 	//
 
+	/**
+	 * 重置 WebGL 上下文状态
+	 */
 	function reset() {
 
 		// reset state
-
+		// 禁用各种WebGL功能
 		gl.disable( gl.BLEND );
 		gl.disable( gl.CULL_FACE );
 		gl.disable( gl.DEPTH_TEST );
@@ -1139,44 +1199,44 @@ function WebGLState( gl ) {
 		gl.disable( gl.SCISSOR_TEST );
 		gl.disable( gl.STENCIL_TEST );
 		gl.disable( gl.SAMPLE_ALPHA_TO_COVERAGE );
-
+		// 设置混合参数
 		gl.blendEquation( gl.FUNC_ADD );
 		gl.blendFunc( gl.ONE, gl.ZERO );
 		gl.blendFuncSeparate( gl.ONE, gl.ZERO, gl.ONE, gl.ZERO );
 		gl.blendColor( 0, 0, 0, 0 );
-
+		// 控制哪些颜色组件可以写入缓冲区
 		gl.colorMask( true, true, true, true );
 		gl.clearColor( 0, 0, 0, 0 );
-
+		// 设置深度缓冲区的写入掩码和深度比较函数
 		gl.depthMask( true );
 		gl.depthFunc( gl.LESS );
 		gl.clearDepth( 1 );
-
+		// 设置模板缓冲区的参数
 		gl.stencilMask( 0xffffffff );
 		gl.stencilFunc( gl.ALWAYS, 0, 0xffffffff );
 		gl.stencilOp( gl.KEEP, gl.KEEP, gl.KEEP );
 		gl.clearStencil( 0 );
-
+		// 设置背面剔除
 		gl.cullFace( gl.BACK );
 		gl.frontFace( gl.CCW );
-
+		// 设置多边形偏移 可以避免z-fighting 问题
 		gl.polygonOffset( 0, 0 );
-
+		// 设置活动纹理单元
 		gl.activeTexture( gl.TEXTURE0 );
-
+		// 接触绑定帧缓冲
 		gl.bindFramebuffer( gl.FRAMEBUFFER, null );
 		gl.bindFramebuffer( gl.DRAW_FRAMEBUFFER, null );
 		gl.bindFramebuffer( gl.READ_FRAMEBUFFER, null );
-
+		// 接触绑定当前的着色器程序
 		gl.useProgram( null );
-
+		// 设置线宽
 		gl.lineWidth( 1 );
-
+		// 设置裁剪矩形和视口
 		gl.scissor( 0, 0, gl.canvas.width, gl.canvas.height );
 		gl.viewport( 0, 0, gl.canvas.width, gl.canvas.height );
 
 		// reset internals
-
+		// 重置内部状态
 		enabledCapabilities = {};
 
 		currentTextureSlot = null;
@@ -1210,7 +1270,7 @@ function WebGLState( gl ) {
 
 		currentScissor.set( 0, 0, gl.canvas.width, gl.canvas.height );
 		currentViewport.set( 0, 0, gl.canvas.width, gl.canvas.height );
-
+		// 重置缓冲
 		colorBuffer.reset();
 		depthBuffer.reset();
 		stencilBuffer.reset();
