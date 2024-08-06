@@ -303,7 +303,7 @@ function WebGLState( gl ) {
 
 	}
 
-	// 状态初始化
+	// 缓冲区实例化
 	const colorBuffer = new ColorBuffer();
 	const depthBuffer = new DepthBuffer();
 	const stencilBuffer = new StencilBuffer();
@@ -400,11 +400,11 @@ function WebGLState( gl ) {
 	emptyTextures[ gl.TEXTURE_3D ] = createTexture( gl.TEXTURE_3D, gl.TEXTURE_3D, 1, 1 );
 
 	// init
-
+	// 初始化缓冲区状态
 	colorBuffer.setClear( 0, 0, 0, 1 );
 	depthBuffer.setClear( 1 );
 	stencilBuffer.setClear( 0 );
-
+	// 开启深度缓冲
 	enable( gl.DEPTH_TEST );
 	depthBuffer.setFunc( LessEqualDepth );
 
@@ -609,6 +609,20 @@ function WebGLState( gl ) {
 		[ OneMinusConstantAlphaFactor ]: gl.ONE_MINUS_CONSTANT_ALPHA
 	};
 
+	/**
+	 * 设置混合模式
+	 *
+	 * @param blending 混合模式
+	 * @param blendEquation 混合方程
+	 * @param blendSrc 混合源因子
+	 * @param blendDst 混合目标因子
+	 * @param blendEquationAlpha 混合方程Alpha
+	 * @param blendSrcAlpha 混合源因子Alpha
+	 * @param blendDstAlpha 混合目标因子Alpha
+	 * @param blendColor 混合颜色
+	 * @param blendAlpha 混合Alpha值
+	 * @param premultipliedAlpha 是否使用预乘Alpha
+	 */
 	function setBlending( blending, blendEquation, blendSrc, blendDst, blendEquationAlpha, blendSrcAlpha, blendDstAlpha, blendColor, blendAlpha, premultipliedAlpha ) {
 
 		if ( blending === NoBlending ) {
@@ -754,6 +768,12 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 设置材质
+	 *
+	 * @param material 材质对象
+	 * @param frontFaceCW 是否顺时针为正面
+	 */
 	function setMaterial( material, frontFaceCW ) {
 
 		material.side === DoubleSide
@@ -768,7 +788,7 @@ function WebGLState( gl ) {
 		( material.blending === NormalBlending && material.transparent === false )
 			? setBlending( NoBlending )
 			: setBlending( material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.blendColor, material.blendAlpha, material.premultipliedAlpha );
-
+		// 深度和颜色缓冲区设置
 		depthBuffer.setFunc( material.depthFunc );
 		depthBuffer.setTest( material.depthTest );
 		depthBuffer.setMask( material.depthWrite );
@@ -783,7 +803,7 @@ function WebGLState( gl ) {
 			stencilBuffer.setOp( material.stencilFail, material.stencilZFail, material.stencilZPass );
 
 		}
-
+		// 设置多边形偏移
 		setPolygonOffset( material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits );
 
 		material.alphaToCoverage === true
@@ -792,8 +812,12 @@ function WebGLState( gl ) {
 
 	}
 
-	//
-
+	/**
+	 * 设置翻转面
+	 *
+	 * @param flipSided 是否翻转面，true表示翻转，false表示不翻转
+	 * @returns 无返回值
+	 */
 	function setFlipSided( flipSided ) {
 
 		if ( currentFlipSided !== flipSided ) {
@@ -814,6 +838,11 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 设置剔除面
+	 *
+	 * @param cullFace 剔除面，可选值为 CullFaceNone、CullFaceBack、CullFaceFront 或 CullFaceFrontAndBack
+	 */
 	function setCullFace( cullFace ) {
 
 		if ( cullFace !== CullFaceNone ) {
@@ -848,6 +877,12 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 设置线宽
+	 *
+	 * @param width 线宽值
+	 * @returns 无返回值
+	 */
 	function setLineWidth( width ) {
 
 		if ( width !== currentLineWidth ) {
@@ -860,6 +895,13 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 设置多边形偏移量
+	 *
+	 * @param polygonOffset 是否开启多边形偏移量
+	 * @param factor 偏移因子
+	 * @param units 偏移单位
+	 */
 	function setPolygonOffset( polygonOffset, factor, units ) {
 
 		if ( polygonOffset ) {
@@ -883,6 +925,12 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 设置剪裁测试
+	 *
+	 * @param scissorTest 是否开启剪裁测试
+	 * @returns 无返回值
+	 */
 	function setScissorTest( scissorTest ) {
 
 		if ( scissorTest ) {
@@ -896,9 +944,12 @@ function WebGLState( gl ) {
 		}
 
 	}
-
-	// texture
-
+	/**
+	 * 激活纹理
+	 *
+	 * @param webglSlot WebGL纹理槽位，可选参数，默认为gl.TEXTURE0 + maxTextures - 1
+	 * @returns 无返回值
+	 */
 	function activeTexture( webglSlot ) {
 
 		if ( webglSlot === undefined ) webglSlot = gl.TEXTURE0 + maxTextures - 1;
@@ -912,6 +963,13 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 绑定纹理
+	 *
+	 * @param webglType WebGL纹理类型
+	 * @param webglTexture WebGL纹理对象
+	 * @param webglSlot WebGL纹理槽位，若未指定则使用当前纹理槽位
+	 */
 	function bindTexture( webglType, webglTexture, webglSlot ) {
 
 		if ( webglSlot === undefined ) {
@@ -970,6 +1028,11 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 压缩二维纹理图像
+	 *
+	 * @returns 无返回值
+	 */
 	function compressedTexImage2D() {
 
 		try {
@@ -984,6 +1047,22 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 压缩3D纹理图像
+	 *
+	 * @description 使用WebGL的compressedTexImage3D方法压缩3D纹理图像
+	 * @remarks 当使用compressedTexImage3D方法压缩3D纹理图像时，如果发生错误，会在控制台输出错误信息
+	 * @example
+	 * compressedTexImage3D(target, level, internalformat, width, height, depth, border, data);
+	 * @param target 纹理的目标
+	 * @param level 纹理的详细级别
+	 * @param internalformat 纹理的格式
+	 * @param width 纹理的宽度
+	 * @param height 纹理的高度
+	 * @param depth 纹理的深度
+	 * @param border 纹理的边框
+	 * @param data 纹理的数据
+	 */
 	function compressedTexImage3D() {
 
 		try {
@@ -998,6 +1077,14 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 更新纹理的矩形区域。
+	 *
+	 * @remarks
+	 * 该函数用于在WebGL上下文中更新纹理的指定矩形区域。
+	 *
+	 * @throws 当调用gl.texSubImage2D发生错误时，将抛出异常。
+	 */
 	function texSubImage2D() {
 
 		try {
@@ -1012,6 +1099,15 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 将像素数据更新到已存在的三维纹理的子区域中
+	 *
+	 * @remarks
+	 * 调用WebGL的texSubImage3D方法，将像素数据更新到已存在的三维纹理的子区域中。
+	 * 如果调用失败，则在控制台输出错误信息。
+	 *
+	 * @throws 当调用WebGL的texSubImage3D方法失败时，抛出异常。
+	 */
 	function texSubImage3D() {
 
 		try {
@@ -1026,6 +1122,12 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 使用已压缩的数据更新指定纹理子图像区域。
+	 *
+	 * @returns 无返回值
+	 * @throws 如果gl.compressedTexSubImage2D发生错误，将在控制台中打印错误消息
+	 */
 	function compressedTexSubImage2D() {
 
 		try {
@@ -1040,6 +1142,11 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 压缩三维纹理子图像
+	 *
+	 * @returns 无返回值
+	 */
 	function compressedTexSubImage3D() {
 
 		try {
@@ -1054,6 +1161,11 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 创建二维纹理存储空间
+	 *
+	 * @returns 无返回值
+	 */
 	function texStorage2D() {
 
 		try {
@@ -1068,6 +1180,16 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 创建一个三维纹理存储。
+	 *
+	 * @remarks
+	 * 使用 WebGL 的 texStorage3D 方法创建一个三维纹理存储。
+	 *
+	 * @throws 当 WebGL 的 texStorage3D 方法失败时，将抛出异常并在控制台中记录错误。
+	 *
+	 * @see gl.texStorage3D
+	 */
 	function texStorage3D() {
 
 		try {
@@ -1082,6 +1204,11 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 将二维纹理图像数据上传到纹理对象
+	 *
+	 * @returns 无返回值
+	 */
 	function texImage2D() {
 
 		try {
@@ -1096,6 +1223,15 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 加载3D纹理数据到纹理对象中
+	 *
+	 * @remarks
+	 * 该函数通过调用WebGL上下文对象的texImage3D方法加载3D纹理数据到纹理对象中。
+	 * 如果加载过程中发生错误，则会在控制台输出错误信息。
+	 *
+	 * @throws 无
+	 */
 	function texImage3D() {
 
 		try {
@@ -1143,6 +1279,12 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 更新UBO映射关系
+	 *
+	 * @param uniformsGroup 统一的块对象
+	 * @param program 着色器程序
+	 */
 	function updateUBOMapping( uniformsGroup, program ) {
 
 		let mapping = uboProgramMap.get( program );
@@ -1167,6 +1309,12 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 绑定统一块
+	 *
+	 * @param uniformsGroup 统一块组
+	 * @param program WebGL程序
+	 */
 	function uniformBlockBinding( uniformsGroup, program ) {
 
 		const mapping = uboProgramMap.get( program );

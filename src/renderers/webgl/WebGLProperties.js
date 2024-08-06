@@ -1,3 +1,9 @@
+/**
+ * WebGLProperties 构造函数
+ * 用于管理WebGL对象的属性
+ *
+ * @returns 返回包含get、remove、update、dispose方法的对象
+ */
 function WebGLProperties() {
 
 	let properties = new WeakMap();

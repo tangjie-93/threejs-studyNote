@@ -8,8 +8,9 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	const multisampledRTTExt = extensions.has( 'WEBGL_multisampled_render_to_texture' ) ? extensions.get( 'WEBGL_multisampled_render_to_texture' ) : null;
 	const supportsInvalidateFramebuffer = typeof navigator === 'undefined' ? false : /OculusBrowser/g.test( navigator.userAgent );
-
+	// 图片尺寸
 	const _imageDimensions = new Vector2();
+	// 视频纹理
 	const _videoTextures = new WeakMap();
 	let _canvas;
 
@@ -33,6 +34,13 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 创建一个Canvas对象
+	 *
+	 * @param width Canvas的宽度
+	 * @param height Canvas的高度
+	 * @returns 返回一个Canvas对象，如果支持OffscreenCanvas，则返回OffscreenCanvas对象，否则返回HTMLCanvasElement对象
+	 */
 	function createCanvas( width, height ) {
 
 		// Use OffscreenCanvas when available. Specially needed in web workers
@@ -43,38 +51,47 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 调整图片大小
+	 *
+	 * @param image 图片对象
+	 * @param needsNewCanvas 是否需要新的画布
+	 * @param maxSize 最大尺寸
+	 * @returns 调整大小后的图片对象或原始图片对象
+	 */
 	function resizeImage( image, needsNewCanvas, maxSize ) {
 
 		let scale = 1;
 
 		const dimensions = getDimensions( image );
 
+		// 如果纹理超过最大尺寸
 		// handle case if texture exceeds max size
-
 		if ( dimensions.width > maxSize || dimensions.height > maxSize ) {
 
+			// 计算缩放比例
 			scale = maxSize / Math.max( dimensions.width, dimensions.height );
 
 		}
 
+		// 只在必要时进行缩放
 		// only perform resize if necessary
-
 		if ( scale < 1 ) {
 
+			// 只对特定类型的图片进行缩放
 			// only perform resize for certain image types
-
 			if ( ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement ) ||
 				( typeof HTMLCanvasElement !== 'undefined' && image instanceof HTMLCanvasElement ) ||
 				( typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap ) ||
 				( typeof VideoFrame !== 'undefined' && image instanceof VideoFrame ) ) {
-
+				// 计算画布的大小
 				const width = Math.floor( scale * dimensions.width );
 				const height = Math.floor( scale * dimensions.height );
 
 				if ( _canvas === undefined ) _canvas = createCanvas( width, height );
 
+				// 立方体纹理不能重用相同的画布
 				// cube textures can't reuse the same canvas
-
 				const canvas = needsNewCanvas ? createCanvas( width, height ) : _canvas;
 
 				canvas.width = width;
@@ -83,7 +100,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 				const context = canvas.getContext( '2d' );
 				context.drawImage( image, 0, 0, width, height );
 
-				console.warn( 'THREE.WebGLRenderer: Texture has been resized from (' + dimensions.width + 'x' + dimensions.height + ') to (' + width + 'x' + height + ').' );
+				console.warn( 'THREE.WebGLRenderer: 纹理已被从 (' + dimensions.width + 'x' + dimensions.height + ') 缩放至 (' + width + 'x' + height + ').' );
 
 				return canvas;
 
@@ -91,7 +108,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 				if ( 'data' in image ) {
 
-					console.warn( 'THREE.WebGLRenderer: Image in DataTexture is too big (' + dimensions.width + 'x' + dimensions.height + ').' );
+					console.warn( 'THREE.WebGLRenderer: DataTexture 中的图片太大 (' + dimensions.width + 'x' + dimensions.height + ').' );
 
 				}
 
@@ -105,18 +122,39 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 判断纹理是否需要生成mipmap
+	 *
+	 * @param texture 纹理对象
+	 * @returns 如果纹理需要生成mipmap则返回true，否则返回false
+	 */
 	function textureNeedsGenerateMipmaps( texture ) {
 
 		return texture.generateMipmaps && texture.minFilter !== NearestFilter && texture.minFilter !== LinearFilter;
 
 	}
 
+	/**
+	 * 生成mipmap
+	 *
+	 * @param target 目标纹理类型
+	 */
 	function generateMipmap( target ) {
 
 		_gl.generateMipmap( target );
 
 	}
 
+	/**
+	 * 根据给定的参数获取WebGL内部格式
+	 *
+	 * @param internalFormatName WebGL内部格式名称
+	 * @param glFormat WebGL格式
+	 * @param glType WebGL类型
+	 * @param colorSpace 颜色空间
+	 * @param forceLinearTransfer 是否强制使用线性传输，默认为false
+	 * @returns 返回WebGL内部格式
+	 */
 	function getInternalFormat( internalFormatName, glFormat, glType, colorSpace, forceLinearTransfer = false ) {
 
 		if ( internalFormatName !== null ) {
@@ -197,6 +235,13 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 获取内部深度格式
+	 *
+	 * @param useStencil 是否使用模板
+	 * @param depthType 深度类型
+	 * @returns 返回WebGL的内部深度格式
+	 */
 	function getInternalDepthFormat( useStencil, depthType ) {
 
 		let glInternalFormat;
@@ -239,6 +284,13 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 获取纹理的mip级别数量
+	 *
+	 * @param texture 纹理对象
+	 * @param image 图像对象
+	 * @returns 返回纹理的mip级别数量
+	 */
 	function getMipLevels( texture, image ) {
 
 		if ( textureNeedsGenerateMipmaps( texture ) === true || ( texture.isFramebufferTexture && texture.minFilter !== NearestFilter && texture.minFilter !== LinearFilter ) ) {
@@ -265,8 +317,11 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
-	//
-
+	/**
+	 * 当纹理被销毁时触发的回调函数
+	 *
+	 * @param event 事件对象
+	 */
 	function onTextureDispose( event ) {
 
 		const texture = event.target;
@@ -293,59 +348,94 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
-	//
-
+	/**
+	 * 释放纹理资源
+	 *
+	 * @param texture 要释放的纹理
+	 */
 	function deallocateTexture( texture ) {
 
+		// 获取纹理的属性
 		const textureProperties = properties.get( texture );
 
+		// 如果纹理属性中的__webglInit未定义，则直接返回
 		if ( textureProperties.__webglInit === undefined ) return;
 
+		// 检查是否需要移除WebGLTexture对象
 		// check if it's necessary to remove the WebGLTexture object
 
+		// 获取纹理的源
 		const source = texture.source;
+
+		// 获取源对应的WebGL纹理对象集合
 		const webglTextures = _sources.get( source );
 
 		if ( webglTextures ) {
 
+			// 获取指定缓存键对应的WebGL纹理对象
 			const webglTexture = webglTextures[ textureProperties.__cacheKey ];
+
+			// 减少WebGL纹理对象的使用次数
 			webglTexture.usedTimes --;
 
+			// 如果WebGL纹理对象的使用次数为0，则删除该纹理对象
 			// the WebGLTexture object is not used anymore, remove it
-
 			if ( webglTexture.usedTimes === 0 ) {
 
+				// 调用删除纹理对象的函数
 				deleteTexture( texture );
 
 			}
 
+			// 如果源对应的WebGL纹理对象集合为空，则删除该源的弱映射条目
 			// remove the weak map entry if no WebGLTexture uses the source anymore
-
 			if ( Object.keys( webglTextures ).length === 0 ) {
 
+				// 从_sources中删除该源
 				_sources.delete( source );
 
 			}
 
 		}
 
+		// 从属性集合中移除纹理的属性
 		properties.remove( texture );
 
 	}
 
+	/**
+	 * 删除纹理
+	 *
+	 * @param texture 要删除的纹理对象
+	 * @returns 无返回值
+	 */
 	function deleteTexture( texture ) {
 
+		// 获取纹理的属性
 		const textureProperties = properties.get( texture );
+
+		// 删除WebGL纹理
 		_gl.deleteTexture( textureProperties.__webglTexture );
 
+		// 获取纹理的源
 		const source = texture.source;
+
+		// 获取源对应的WebGL纹理集合
 		const webglTextures = _sources.get( source );
+
+		// 删除缓存中的纹理
 		delete webglTextures[ textureProperties.__cacheKey ];
 
+		// 减少纹理占用的内存计数
 		info.memory.textures --;
 
 	}
 
+	/**
+	 * 释放渲染目标占用的资源
+	 *
+	 * @param renderTarget 渲染目标对象
+	 */
 	function deallocateRenderTarget( renderTarget ) {
 
 		const renderTargetProperties = properties.get( renderTarget );
@@ -429,12 +519,22 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	let textureUnits = 0;
 
+	/**
+	 * 重置纹理单元数量
+	 *
+	 * @returns 无返回值
+	 */
 	function resetTextureUnits() {
 
 		textureUnits = 0;
 
 	}
 
+	/**
+	 * 分配纹理单元
+	 *
+	 * @returns 返回分配的纹理单元
+	 */
 	function allocateTextureUnit() {
 
 		const textureUnit = textureUnits;
@@ -451,6 +551,12 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 获取纹理缓存键
+	 *
+	 * @param texture 纹理对象
+	 * @returns 纹理缓存键
+	 */
 	function getTextureCacheKey( texture ) {
 
 		const array = [];
@@ -476,6 +582,12 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	//
 
+	/**
+	 * 设置二维纹理
+	 *
+	 * @param texture 纹理对象
+	 * @param slot 纹理槽位
+	 */
 	function setTexture2D( texture, slot ) {
 
 		const textureProperties = properties.get( texture );
@@ -507,6 +619,12 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 设置纹理2D数组
+	 *
+	 * @param texture 纹理对象
+	 * @param slot 纹理槽位
+	 */
 	function setTexture2DArray( texture, slot ) {
 
 		const textureProperties = properties.get( texture );
@@ -522,6 +640,12 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 设置3D纹理
+	 *
+	 * @param texture 纹理对象
+	 * @param slot 纹理槽位
+	 */
 	function setTexture3D( texture, slot ) {
 
 		const textureProperties = properties.get( texture );
@@ -537,6 +661,12 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 设置纹理立方体
+	 *
+	 * @param texture 纹理对象
+	 * @param slot 纹理槽位
+	 */
 	function setTextureCube( texture, slot ) {
 
 		const textureProperties = properties.get( texture );
@@ -579,6 +709,12 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 		[ NotEqualCompare ]: _gl.NOTEQUAL
 	};
 
+	/**
+	 * 设置纹理参数
+	 *
+	 * @param textureType 纹理类型
+	 * @param texture 纹理对象
+	 */
 	function setTextureParameters( textureType, texture ) {
 
 		if ( texture.type === FloatType && extensions.has( 'OES_texture_float_linear' ) === false &&
@@ -626,6 +762,13 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 初始化纹理
+	 *
+	 * @param textureProperties 纹理属性对象
+	 * @param texture 纹理对象
+	 * @returns 是否需要强制上传纹理
+	 */
 	function initTexture( textureProperties, texture ) {
 
 		let forceUpload = false;
@@ -634,12 +777,13 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 			textureProperties.__webglInit = true;
 
+			// 添加纹理被销毁时的监听事件
 			texture.addEventListener( 'dispose', onTextureDispose );
 
 		}
 
+		// 如果需要，创建源对象与WebGL纹理的映射关系
 		// create Source <-> WebGLTextures mapping if necessary
-
 		const source = texture.source;
 		let webglTextures = _sources.get( source );
 
@@ -650,18 +794,18 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 		}
 
+		// 检查是否已经有给定纹理参数的WebGLTexture对象
 		// check if there is already a WebGLTexture object for the given texture parameters
-
 		const textureCacheKey = getTextureCacheKey( texture );
 
 		if ( textureCacheKey !== textureProperties.__cacheKey ) {
 
+			// 如果没有，则创建新的WebGLTexture实例
 			// if not, create a new instance of WebGLTexture
-
 			if ( webglTextures[ textureCacheKey ] === undefined ) {
 
+				// 创建新条目
 				// create new entry
-
 				webglTextures[ textureCacheKey ] = {
 					texture: _gl.createTexture(),
 					usedTimes: 0
@@ -669,18 +813,18 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 				info.memory.textures ++;
 
+				// 当创建新的WebGLTexture实例时，即使图像内容相同，也需要进行纹理上传
 				// when a new instance of WebGLTexture was created, a texture upload is required
 				// even if the image contents are identical
-
 				forceUpload = true;
 
 			}
 
 			webglTextures[ textureCacheKey ].usedTimes ++;
 
+			// 每次纹理缓存键改变时，需要检查是否可以删除WebGLTexture实例以避免内存泄漏
 			// every time the texture cache key changes, it's necessary to check if an instance of
 			// WebGLTexture can be deleted in order to avoid a memory leak.
-
 			const webglTexture = webglTextures[ textureProperties.__cacheKey ];
 
 			if ( webglTexture !== undefined ) {
@@ -689,14 +833,15 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 				if ( webglTexture.usedTimes === 0 ) {
 
+					// 删除纹理
 					deleteTexture( texture );
 
 				}
 
 			}
 
+			// 存储对缓存键和WebGLTexture对象的引用
 			// store references to cache key and WebGLTexture object
-
 			textureProperties.__cacheKey = textureCacheKey;
 			textureProperties.__webglTexture = webglTextures[ textureCacheKey ].texture;
 
@@ -1380,6 +1525,16 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	// Render targets
 
 	// Setup storage for target texture and bind it to correct framebuffer
+	/**
+	 * 设置帧缓冲纹理
+	 *
+	 * @param framebuffer 帧缓冲对象
+	 * @param renderTarget 渲染目标
+	 * @param texture 纹理对象
+	 * @param attachment 附加点
+	 * @param textureTarget 纹理目标
+	 * @param level 等级
+	 */
 	function setupFrameBufferTexture( framebuffer, renderTarget, texture, attachment, textureTarget, level ) {
 
 		const glFormat = utils.convert( texture.format, texture.colorSpace );
@@ -1421,6 +1576,13 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	}
 
 	// Setup storage for internal depth/stencil buffers and bind to correct framebuffer
+	/**
+	 * 设置渲染缓冲区存储
+	 *
+	 * @param renderbuffer 渲染缓冲区
+	 * @param renderTarget 渲染目标
+	 * @param isMultisample 是否多重采样
+	 */
 	function setupRenderBufferStorage( renderbuffer, renderTarget, isMultisample ) {
 
 		_gl.bindRenderbuffer( _gl.RENDERBUFFER, renderbuffer );
@@ -1488,6 +1650,15 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	}
 
 	// Setup resources for a Depth Texture for a FBO (needs an extension)
+	/**
+	 * 设置深度纹理
+	 *
+	 * @param framebuffer 帧缓冲对象
+	 * @param renderTarget 渲染目标对象
+	 * @throws 如果使用立方体渲染目标则抛出错误
+	 * @throws 如果renderTarget.depthTexture不是THREE.DepthTexture的实例则抛出错误
+	 * @returns 无返回值
+	 */
 	function setupDepthTexture( framebuffer, renderTarget ) {
 
 		const isCube = ( renderTarget && renderTarget.isWebGLCubeRenderTarget );
@@ -1550,6 +1721,13 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	}
 
 	// Setup GL resources for a non-texture depth buffer
+	/**
+	 * 设置深度渲染缓冲区
+	 *
+	 * @param renderTarget 渲染目标
+	 * @returns 无返回值
+	 * @throws 当在Cube渲染目标中使用target.depthTexture时抛出错误
+	 */
 	function setupDepthRenderbuffer( renderTarget ) {
 
 		const renderTargetProperties = properties.get( renderTarget );
@@ -1590,6 +1768,13 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	}
 
 	// rebind framebuffer with external textures
+	/**
+	 * 重新绑定纹理
+	 *
+	 * @param renderTarget 渲染目标
+	 * @param colorTexture 颜色纹理
+	 * @param depthTexture 深度纹理
+	 */
 	function rebindTextures( renderTarget, colorTexture, depthTexture ) {
 
 		const renderTargetProperties = properties.get( renderTarget );
@@ -1609,6 +1794,11 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	}
 
 	// Set up GL resources for the render target
+	/**
+	 * 设置渲染目标
+	 *
+	 * @param renderTarget 渲染目标对象
+	 */
 	function setupRenderTarget( renderTarget ) {
 
 		const texture = renderTarget.texture;
@@ -1838,6 +2028,12 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 更新渲染目标的mipmap
+	 *
+	 * @param renderTarget 渲染目标
+	 * @returns 无返回值
+	 */
 	function updateRenderTargetMipmap( renderTarget ) {
 
 		const textures = renderTarget.textures;
@@ -1864,6 +2060,11 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	const invalidationArrayRead = [];
 	const invalidationArrayDraw = [];
 
+	/**
+	 * 更新多重采样渲染目标
+	 *
+	 * @param renderTarget 渲染目标对象
+	 */
 	function updateMultisampleRenderTarget( renderTarget ) {
 
 		if ( renderTarget.samples > 0 ) {
@@ -1979,12 +2180,24 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 获取渲染目标样本数
+	 *
+	 * @param renderTarget 渲染目标
+	 * @returns 返回渲染目标样本数，取渲染目标样本数与最大样本数中的较小值
+	 */
 	function getRenderTargetSamples( renderTarget ) {
 
 		return Math.min( capabilities.maxSamples, renderTarget.samples );
 
 	}
 
+	/**
+	 * 判断是否使用多重采样渲染到纹理
+	 *
+	 * @param renderTarget 渲染目标
+	 * @returns 返回布尔值，表示是否使用多重采样渲染到纹理
+	 */
 	function useMultisampledRTT( renderTarget ) {
 
 		const renderTargetProperties = properties.get( renderTarget );
@@ -1993,6 +2206,11 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 更新视频纹理
+	 *
+	 * @param texture 视频纹理对象
+	 */
 	function updateVideoTexture( texture ) {
 
 		const frame = info.render.frame;
@@ -2008,6 +2226,13 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 验证纹理的颜色空间
+	 *
+	 * @param texture 纹理对象
+	 * @param image 图像对象
+	 * @returns 验证后的图像对象
+	 */
 	function verifyColorSpace( texture, image ) {
 
 		const colorSpace = texture.colorSpace;
@@ -2042,6 +2267,12 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
+	/**
+	 * 获取图片的尺寸信息
+	 *
+	 * @param image 图片对象，可以是HTMLImageElement、VideoFrame或其他包含width和height属性的对象
+	 * @returns 返回一个包含width和height属性的对象，分别表示图片的宽度和高度
+	 */
 	function getDimensions( image ) {
 
 		if ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement ) {
@@ -2067,8 +2298,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
-	//
-
+	//方法挂载到WebGLTextures上
 	this.allocateTextureUnit = allocateTextureUnit;
 	this.resetTextureUnits = resetTextureUnits;
 

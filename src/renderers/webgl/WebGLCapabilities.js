@@ -1,9 +1,28 @@
 import { FloatType, HalfFloatType, RGBAFormat, UnsignedByteType } from '../../constants.js';
 
+/**
+ * WebGLCapabilities 构造函数，用于获取 WebGL 上下文的相关能力信息。
+ *
+ * @param {WebGLRenderingContext} gl - WebGL 渲染上下文。
+ * @param {Map<string, any>} extensions - 支持的 WebGL 扩展。
+ * @param {object} parameters - 初始化参数。
+ * @param {object} utils - 工具函数集合。
+ * @returns {object} - 包含了 WebGL 上下文能力的对象。
+ */
 function WebGLCapabilities( gl, extensions, parameters, utils ) {
 
 	let maxAnisotropy;
 
+	/**
+	 * 获取最大各向异性过滤值
+	 *
+	 * @returns 返回最大各向异性过滤值，如果不支持则返回0
+	 */
+	/**
+	 * 获取最大各向异性过滤值
+	 *
+	 * @returns 返回最大各向异性过滤值，如果不支持则返回0
+	 */
 	function getMaxAnisotropy() {
 
 		if ( maxAnisotropy !== undefined ) return maxAnisotropy;
@@ -24,6 +43,12 @@ function WebGLCapabilities( gl, extensions, parameters, utils ) {
 
 	}
 
+	/**
+	 * 判断纹理格式是否可读
+	 *
+	 * @param textureFormat 纹理格式
+	 * @returns 返回布尔值，表示纹理格式是否可读
+	 */
 	function textureFormatReadable( textureFormat ) {
 
 		if ( textureFormat !== RGBAFormat && utils.convert( textureFormat ) !== gl.getParameter( gl.IMPLEMENTATION_COLOR_READ_FORMAT ) ) {
@@ -36,6 +61,12 @@ function WebGLCapabilities( gl, extensions, parameters, utils ) {
 
 	}
 
+	/**
+	 * 判断纹理类型是否可读
+	 *
+	 * @param textureType 纹理类型
+	 * @returns 如果纹理类型可读，则返回true；否则返回false
+	 */
 	function textureTypeReadable( textureType ) {
 
 		const halfFloatSupportedByExt = ( textureType === HalfFloatType ) && ( extensions.has( 'EXT_color_buffer_half_float' ) || extensions.has( 'EXT_color_buffer_float' ) );
@@ -51,6 +82,12 @@ function WebGLCapabilities( gl, extensions, parameters, utils ) {
 
 	}
 
+	/**
+	 * 获取最大精度
+	 *
+	 * @param precision 精度类型，可选值为 'highp'、'mediump'、'lowp'
+	 * @returns 返回最大精度类型，可选值为 'highp'、'mediump'、'lowp'
+	 */
 	function getMaxPrecision( precision ) {
 
 		if ( precision === 'highp' ) {

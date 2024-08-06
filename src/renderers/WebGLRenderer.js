@@ -303,10 +303,10 @@ class WebGLRenderer {
 			// 初始化 WebGL 功能
 			capabilities = new WebGLCapabilities( _gl, extensions, parameters, utils );
 
-			// 初始化 WebGL 状态
+			// 初始化 WebGL 状态 颜色、深度、混合等缓冲区 纹理等
 			state = new WebGLState( _gl );
 
-			// 初始化 WebGL 信息
+			// 初始化 WebGL 信息 如调用次数、点线面的数量，几何图形的数量，纹理的数量
 			info = new WebGLInfo( _gl );
 			// 初始化 WebGL 属性
 			properties = new WebGLProperties();

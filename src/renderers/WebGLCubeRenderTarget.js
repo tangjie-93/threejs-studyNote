@@ -35,13 +35,25 @@ class WebGLCubeRenderTarget extends WebGLRenderTarget {
 
 	}
 
+	/**
+	 * 从等距柱状纹理生成立方体纹理
+	 *
+	 * @param renderer 渲染器
+	 * @param texture 等距柱状纹理
+	 * @returns 返回当前对象
+	 */
 	fromEquirectangularTexture( renderer, texture ) {
 
+		// 设置纹理类型
 		this.texture.type = texture.type;
+		// 设置颜色空间
 		this.texture.colorSpace = texture.colorSpace;
 
+		// 设置是否生成mipmap
 		this.texture.generateMipmaps = texture.generateMipmaps;
+		// 设置最小过滤方式
 		this.texture.minFilter = texture.minFilter;
+		// 设置放大过滤方式
 		this.texture.magFilter = texture.magFilter;
 
 		const shader = {
@@ -51,27 +63,23 @@ class WebGLCubeRenderTarget extends WebGLRenderTarget {
 			},
 
 			vertexShader: /* glsl */`
-
+				// 顶点着色器代码开始
 				varying vec3 vWorldDirection;
 
 				vec3 transformDirection( in vec3 dir, in mat4 matrix ) {
-
 					return normalize( ( matrix * vec4( dir, 0.0 ) ).xyz );
-
 				}
 
 				void main() {
-
 					vWorldDirection = transformDirection( position, modelMatrix );
-
 					#include <begin_vertex>
 					#include <project_vertex>
-
 				}
+			// 顶点着色器代码结束
 			`,
 
 			fragmentShader: /* glsl */`
-
+				// 片段着色器代码开始
 				uniform sampler2D tEquirect;
 
 				varying vec3 vWorldDirection;
@@ -79,45 +87,53 @@ class WebGLCubeRenderTarget extends WebGLRenderTarget {
 				#include <common>
 
 				void main() {
-
 					vec3 direction = normalize( vWorldDirection );
 
 					vec2 sampleUV = equirectUv( direction );
 
 					gl_FragColor = texture2D( tEquirect, sampleUV );
-
 				}
+			// 片段着色器代码结束
 			`
 		};
 
+		// 创建立方体几何体
 		const geometry = new BoxGeometry( 5, 5, 5 );
 
+		// 创建着色器材质
 		const material = new ShaderMaterial( {
-
 			name: 'CubemapFromEquirect',
-
 			uniforms: cloneUniforms( shader.uniforms ),
 			vertexShader: shader.vertexShader,
 			fragmentShader: shader.fragmentShader,
 			side: BackSide,
 			blending: NoBlending
-
 		} );
 
+		// 将传入的纹理赋值给着色器材质的uniform变量
 		material.uniforms.tEquirect.value = texture;
 
+		// 创建网格对象
 		const mesh = new Mesh( geometry, material );
 
+		// 保存当前纹理的最小过滤方式
 		const currentMinFilter = texture.minFilter;
 
+		// 避免极点模糊
+		// 如果纹理的最小过滤方式为线性mipmap线性过滤，则改为线性过滤
 		// Avoid blurred poles
 		if ( texture.minFilter === LinearMipmapLinearFilter ) texture.minFilter = LinearFilter;
 
+		// 创建立方体相机
 		const camera = new CubeCamera( 1, 10, this );
+		// 更新立方体相机的视图
 		camera.update( renderer, mesh );
 
+		// 恢复纹理的最小过滤方式
 		texture.minFilter = currentMinFilter;
 
+		// 销毁网格对象的几何体和材质
+		// 用完就销毁？
 		mesh.geometry.dispose();
 		mesh.material.dispose();
 
@@ -125,6 +141,14 @@ class WebGLCubeRenderTarget extends WebGLRenderTarget {
 
 	}
 
+	/**
+	 * 清除渲染器缓冲区中的颜色、深度和模板信息
+	 *
+	 * @param renderer 渲染器对象
+	 * @param color 颜色值
+	 * @param depth 深度值
+	 * @param stencil 模板值
+	 */
 	clear( renderer, color, depth, stencil ) {
 
 		const currentRenderTarget = renderer.getRenderTarget();
