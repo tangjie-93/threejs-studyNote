@@ -1,6 +1,11 @@
 import { Matrix3 } from '../../math/Matrix3.js';
 import { Plane } from '../../math/Plane.js';
 
+/**
+ * WebGLClipping 类，用于 WebGL 裁剪功能
+ *
+ * @param {Object} properties - 属性对象
+ */
 function WebGLClipping( properties ) {
 
 	const scope = this;

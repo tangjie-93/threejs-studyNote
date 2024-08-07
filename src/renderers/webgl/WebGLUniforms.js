@@ -1094,6 +1094,12 @@ function parseUniform( activeInfo, addr, container ) {
 
 class WebGLUniforms {
 
+	/**
+	 * 构造函数
+	 *
+	 * @param gl WebGLRenderingContext 对象
+	 * @param program WebGLProgram 对象
+	 */
 	constructor( gl, program ) {
 
 		this.seq = [];

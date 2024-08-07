@@ -318,14 +318,26 @@ class WebGLRenderer {
 			// 初始化 WebGL 立方体 UV 纹理
 			cubeuvmaps = new WebGLCubeUVMaps( _this );
 
-			// 初始化 WebGL 属性
+			// 初始化 WebGL 属性 用于处理 WebGL 中的属性缓冲,主要是处理以下代码的逻辑
+			/**
+			 * 	const buffer = gl.createBuffer();
+				gl.bindBuffer( bufferType, buffer );
+				gl.bufferData( bufferType, array, usage );
+			 */
 			attributes = new WebGLAttributes( _gl );
-			// 初始化 WebGL 绑定状态
+			// 初始化 WebGL 绑定状态, 主要是执行以下代码的逻辑
+			/**
+			 *  //缓冲区中的数据按照一定的规律传递给位置变量apos
+				gl.vertexAttribPointer(aposLocation, 3, gl.FLOAT, false, 0, 0);
+				//允许数据传递
+				gl.enableVertexAttribArray(aposLocation);
+			 */
 			bindingStates = new WebGLBindingStates( _gl, attributes );
 
-			// 初始化 WebGL 几何体
+			// 初始化 WebGL 几何体  
+			// 主要处理attributes里面的属性，并释放bindingStates的内存
 			geometries = new WebGLGeometries( _gl, attributes, info, bindingStates );
-			// 初始化 WebGL 对象
+			// 初始化 WebGL 对象 用于操作object的
 			objects = new WebGLObjects( _gl, geometries, attributes, info );
 
 			// 初始化 WebGL 变形目标
@@ -333,7 +345,32 @@ class WebGLRenderer {
 			// 初始化 WebGL 裁剪
 			clipping = new WebGLClipping( properties );
 
-			// 初始化 WebGL 程序缓存
+			// 初始化 WebGL 程序缓存  可以看成是如下代码
+			/**
+			 *  function createShader(gl, type, source) {
+					const shader = gl.createShader(type);
+					gl.shaderSource(shader, source);
+					gl.compileShader(shader);
+					const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+					if (success) {
+						return shader;
+					}
+					console.log(gl.getShaderInfoLog(shader));
+					gl.deleteShader(shader);
+				}
+				function createProgram(gl, vertexShader, fragmentShader) {
+					const program = gl.createProgram();
+					gl.attachShader(program, vertexShader);
+					gl.attachShader(program, fragmentShader);
+					gl.linkProgram(program);
+					const success = gl.getProgramParameter(program, gl.LINK_STATUS);
+					if (success) {
+						return program;
+					}
+					console.log(gl.getProgramInfoLog(program));
+					gl.deleteProgram(program);
+				}
+			 */
 			programCache = new WebGLPrograms( _this, cubemaps, cubeuvmaps, extensions, capabilities, bindingStates, clipping );
 			// 初始化 WebGL 材质
 			materials = new WebGLMaterials( _this, properties );

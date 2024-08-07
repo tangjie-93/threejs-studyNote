@@ -9,34 +9,58 @@ class WebGLShaderCache {
 
 	}
 
+	/**
+	 * 更新材质着色器阶段
+	 *
+	 * @param material 材质对象
+	 * @returns 返回当前对象
+	 */
 	update( material ) {
 
+		// 获取顶点着色器
 		const vertexShader = material.vertexShader;
+		// 获取片元着色器
 		const fragmentShader = material.fragmentShader;
 
+		// 获取顶点着色器阶段
 		const vertexShaderStage = this._getShaderStage( vertexShader );
+		// 获取片元着色器阶段
 		const fragmentShaderStage = this._getShaderStage( fragmentShader );
 
+		// 获取该材质对应的着色器缓存
 		const materialShaders = this._getShaderCacheForMaterial( material );
 
+		// 如果材质着色器缓存中不存在顶点着色器阶段
 		if ( materialShaders.has( vertexShaderStage ) === false ) {
 
+			// 将顶点着色器阶段添加到材质着色器缓存中
 			materialShaders.add( vertexShaderStage );
+			// 顶点着色器阶段的使用次数加1
 			vertexShaderStage.usedTimes ++;
 
 		}
 
+		// 如果材质着色器缓存中不存在片元着色器阶段
 		if ( materialShaders.has( fragmentShaderStage ) === false ) {
 
+			// 将片元着色器阶段添加到材质着色器缓存中
 			materialShaders.add( fragmentShaderStage );
+			// 片元着色器阶段的使用次数加1
 			fragmentShaderStage.usedTimes ++;
 
 		}
 
+		// 返回当前对象
 		return this;
 
 	}
 
+	/**
+	 * 移除材料缓存中的材料和关联的着色器
+	 *
+	 * @param material 材料实例
+	 * @returns 返回当前实例
+	 */
 	remove( material ) {
 
 		const materialShaders = this.materialCache.get( material );

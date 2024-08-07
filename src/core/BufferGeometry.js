@@ -126,54 +126,66 @@ class BufferGeometry extends EventDispatcher {
 
 	}
 
+	/**
+	 * 应用4x4矩阵到对象的属性
+	 *
+	 * @param matrix 4x4矩阵
+	 * @returns 返回对象本身
+	 */
 	applyMatrix4( matrix ) {
-
+		// 获取位置属性
 		const position = this.attributes.position;
 
+		// 如果位置属性存在
 		if ( position !== undefined ) {
-
+			// 应用矩阵变换到位置属性
 			position.applyMatrix4( matrix );
 
+			// 设置位置属性需要更新
 			position.needsUpdate = true;
-
 		}
 
+		// 获取法线属性
 		const normal = this.attributes.normal;
 
+		// 如果法线属性存在
 		if ( normal !== undefined ) {
-
+			// 获取法线矩阵
 			const normalMatrix = new Matrix3().getNormalMatrix( matrix );
 
+			// 应用法线矩阵变换到法线属性
 			normal.applyNormalMatrix( normalMatrix );
 
+			// 设置法线属性需要更新
 			normal.needsUpdate = true;
-
 		}
 
+		// 获取切线属性
 		const tangent = this.attributes.tangent;
 
+		// 如果切线属性存在
 		if ( tangent !== undefined ) {
-
+			// 应用矩阵变换到切线属性
 			tangent.transformDirection( matrix );
 
+			// 设置切线属性需要更新
 			tangent.needsUpdate = true;
-
 		}
 
+		// 如果边界框不为空
 		if ( this.boundingBox !== null ) {
-
+			// 重新计算边界框
 			this.computeBoundingBox();
-
 		}
 
+		// 如果边界球不为空
 		if ( this.boundingSphere !== null ) {
-
+			// 重新计算边界球
 			this.computeBoundingSphere();
-
 		}
 
+		// 返回当前对象
 		return this;
-
 	}
 
 	applyQuaternion( q ) {

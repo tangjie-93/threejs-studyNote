@@ -9,6 +9,16 @@ const COMPLETION_STATUS_KHR = 0x91B1;
 
 let programIdCount = 0;
 
+/**
+ * @description
+ * 处理源代码，返回一个包含错误行及周围6行的字符串数组。
+ * 如果错误行在第7行以外，则从第7行开始；如果错误行在第-6行之前，则从第0行开始。
+ *
+ * @param {string} string 需要处理的源代码字符串，每行以'\n'分隔。
+ * @param {number} errorLine 错误发生的行号，从1开始计算。
+ *
+ * @returns {string[]} 返回一个包含错误行及周围6行的字符串数组，每行以'\n'分隔。
+ */
 function handleSource( string, errorLine ) {
 
 	const lines = string.split( '\n' );
@@ -67,6 +77,14 @@ function getEncodingComponents( colorSpace ) {
 
 }
 
+/**
+ * 获取着色器编译错误
+ *
+ * @param gl WebGL上下文
+ * @param shader 着色器对象
+ * @param type 着色器类型（顶点着色器或片元着色器）
+ * @returns 返回编译错误信息，如果编译成功则返回空字符串
+ */
 function getShaderErrors( gl, shader, type ) {
 
 	const status = gl.getShaderParameter( shader, gl.COMPILE_STATUS );
@@ -91,6 +109,15 @@ function getShaderErrors( gl, shader, type ) {
 
 }
 
+/**
+ * @description
+ * 获取纹理编码函数，返回一个字符串。该函数名为 functionName，参数为 value，返回值为经过指定颜色空间的编码后的 vec4 类型值。
+ *
+ * @param {string} functionName - 函数名，必填项，类型为 string。
+ * @param {string} colorSpace - 颜色空间，必填项，类型为 string，可选值包括 'sRGB'、'linear'、'gamma'。
+ *
+ * @returns {string} 返回一个字符串，表示纹理编码函数的代码。
+ */
 function getTexelEncodingFunction( functionName, colorSpace ) {
 
 	const components = getEncodingComponents( colorSpace );
@@ -98,6 +125,14 @@ function getTexelEncodingFunction( functionName, colorSpace ) {
 
 }
 
+/**
+ * @description
+ * 获取色调映射函数，根据不同的色调映射方式返回对应的函数名称。
+ *
+ * @param {string} functionName - 函数名称，字符串类型，必需参数。
+ * @param {number} toneMapping - 色调映射方式，数值类型，可选参数，默认为 LinearToneMapping。
+ * @returns {string} 返回一个字符串类型，包含色调映射函数的代码片段。
+ */
 function getToneMappingFunction( functionName, toneMapping ) {
 
 	let toneMappingName;
@@ -142,6 +177,14 @@ function getToneMappingFunction( functionName, toneMapping ) {
 
 }
 
+/**
+ * 生成顶点扩展代码
+ *
+ * @param parameters 参数对象
+ * @param parameters.extensionClipCullDistance 是否启用 GL_ANGLE_clip_cull_distance 扩展
+ * @param parameters.extensionMultiDraw 是否启用 GL_ANGLE_multi_draw 扩展
+ * @returns 生成的顶点扩展代码字符串
+ */
 function generateVertexExtensions( parameters ) {
 
 	const chunks = [
@@ -153,6 +196,12 @@ function generateVertexExtensions( parameters ) {
 
 }
 
+/**
+ * 生成宏定义字符串
+ *
+ * @param defines 宏定义对象
+ * @returns 返回生成的宏定义字符串
+ */
 function generateDefines( defines ) {
 
 	const chunks = [];
@@ -171,6 +220,19 @@ function generateDefines( defines ) {
 
 }
 
+/**
+ * @description
+ * 获取属性的位置信息，返回一个对象包含所有属性的类型、位置和位置大小。
+ *
+ * @param {WebGLRenderingContext} gl - WebGLRenderingContext 对象。
+ * @param {WebGLProgram} program - WebGLProgram 对象，表示当前使用中的程序。
+ *
+ * @returns {Object} 返回一个对象，其中包含了所有属性的类型、位置和位置大小。
+ * 每个属性都是一个对象，包含以下字段：
+ * - type (Number)：属性的类型，可能为 gl.FLOAT、gl.FLOAT_VEC2、gl.FLOAT_VEC3 或 gl.FLOAT_MAT2、gl.FLOAT_MAT3 或 gl.FLOAT_MAT4。
+ * - location (Number)：属性在着色器程序中的位置。
+ * - locationSize (Number)：属性的位置大小，默认为 1，如果属性是 mat2、mat3 或 mat4，则为 2、3 或 4。
+ */
 function fetchAttributeLocations( gl, program ) {
 
 	const attributes = {};
@@ -201,12 +263,36 @@ function fetchAttributeLocations( gl, program ) {
 
 }
 
+/**
+ * @description 过滤空行，返回非空字符串
+ * @param {string} string 需要过滤的字符串
+ * @returns {boolean} 如果字符串不为空则返回true，否则返回false
+ */
 function filterEmptyLine( string ) {
 
 	return string !== '';
 
 }
 
+/**
+ * @description
+ * 替换字符串中的光源数量参数，并返回新的字符串。
+ *
+ * @param {string} string - 需要替换的字符串。
+ * @param {Object} parameters - 包含光源数量参数的对象，包括：
+ * - numDirLights (number) - 方向光的数量。
+ * - numSpotLights (number) - 聚光灯的数量。
+ * - numSpotLightMaps (number) - 聚光灯使用的纹理图片的数量。
+ * - numSpotLightShadowsWithMaps (number) - 聚光灯使用纹理图片时的阴影数量。
+ * - numSpotLightShadows (number) - 聚光灯不使用纹理图片时的阴影数量。
+ * - numRectAreaLights (number) - 矩形区域光的数量。
+ * - numPointLights (number) - 点光源的数量。
+ * - numHemiLights (number) - 半球光的数量。
+ * - numDirLightShadows (number) - 方向光的阴影数量。
+ * - numPointLightShadows (number) - 点光源的阴影数量。
+ *
+ * @returns {string} 返回一个新的字符串，其中包含了替换后的光源数量参数。
+ */
 function replaceLightNums( string, parameters ) {
 
 	const numSpotLightCoords = parameters.numSpotLightShadows + parameters.numSpotLightMaps - parameters.numSpotLightShadowsWithMaps;
@@ -226,6 +312,17 @@ function replaceLightNums( string, parameters ) {
 
 }
 
+/**
+ * @description
+ * 替换字符串中的剪切平面数量，并返回新的字符串。
+ *
+ * @param {string} string - 需要替换的字符串，包含剪切平面数量的占位符（NUM_CLIPPING_PLANES和UNION_CLIPPING_PLANES）。
+ * @param {Object} parameters - 包含剪切平面数量和剪切平面交集数量的对象，格式为{ numClippingPlanes: number, numClipIntersection: number }。
+ * @param {number} parameters.numClippingPlanes - 剪切平面数量。
+ * @param {number} parameters.numClipIntersection - 剪切平面交集数量。
+ *
+ * @returns {string} 返回一个新的字符串，其中剪切平面数量和剪切平面交集数量已经被替换。
+ */
 function replaceClippingPlaneNums( string, parameters ) {
 
 	return string
@@ -238,6 +335,13 @@ function replaceClippingPlaneNums( string, parameters ) {
 
 const includePattern = /^[ \t]*#include +<([\w\d./]+)>/gm;
 
+/**
+ * @description
+ * 解析包含的内容，将所有的include标记替换为对应的内容。
+ *
+ * @param {string} string - 需要解析的字符串，包含include标记。
+ * @returns {string} 返回已经解析过include标记的字符串。
+ */
 function resolveIncludes( string ) {
 
 	return string.replace( includePattern, includeReplacer );
@@ -246,6 +350,17 @@ function resolveIncludes( string ) {
 
 const shaderChunkMap = new Map();
 
+/**
+ * @description
+ * 用于替换包含的字符串，返回解析后的字符串。
+ * 如果包含的字符串在ShaderChunk中不存在，则会从shaderChunkMap中获取新的包含名称，并进行相应的处理。
+ * 如果新的包含名称不存在，将抛出一个错误。
+ *
+ * @param {string} match 需要替换的字符串，包含了包含名称，格式为#include <includeName>
+ * @param {string} include 包含名称，来自match参数
+ * @returns {string} 返回解析后的字符串，包含了包含内容
+ * @throws {Error} 当新的包含名称不存在时，将抛出一个错误
+ */
 function includeReplacer( match, include ) {
 
 	let string = ShaderChunk[ include ];
@@ -281,6 +396,17 @@ function unrollLoops( string ) {
 
 }
 
+/**
+ * @description
+ * 用于替换循环语法的函数，将循环内容进行重复替换。
+ *
+ * @param {string} match 匹配到的字符串，包含循环语法
+ * @param {number} start 开始索引值，表示需要从哪个位置开始进行循环
+ * @param {number} end 结束索引值，表示需要到哪个位置结束循环
+ * @param {string} snippet 循环体内容，包含可能需要被替换的变量i
+ *
+ * @returns {string} 返回一个字符串，包含了循环后的结果
+ */
 function loopReplacer( match, start, end, snippet ) {
 
 	let string = '';
@@ -297,7 +423,13 @@ function loopReplacer( match, start, end, snippet ) {
 
 }
 
-//
+/**
+ * 生成精度定义字符串
+ *
+ * @param parameters 精度参数对象
+ * @param parameters.precision 精度等级，可选值为'highp'、'mediump'、'lowp'
+ * @returns 生成的精度定义字符串
+ */
 
 function generatePrecision( parameters ) {
 
@@ -338,6 +470,13 @@ function generatePrecision( parameters ) {
 
 }
 
+/**
+ * 生成阴影贴图类型定义
+ *
+ * @param parameters 参数对象
+ * @param parameters.shadowMapType 阴影贴图类型
+ * @returns 阴影贴图类型定义字符串
+ */
 function generateShadowMapTypeDefine( parameters ) {
 
 	let shadowMapTypeDefine = 'SHADOWMAP_TYPE_BASIC';
@@ -360,6 +499,14 @@ function generateShadowMapTypeDefine( parameters ) {
 
 }
 
+/**
+ * 生成环境贴图类型定义
+ *
+ * @param parameters 参数对象
+ * @param parameters.envMap 环境贴图
+ * @param parameters.envMapMode 环境贴图模式
+ * @returns 环境贴图类型定义
+ */
 function generateEnvMapTypeDefine( parameters ) {
 
 	let envMapTypeDefine = 'ENVMAP_TYPE_CUBE';
@@ -385,6 +532,14 @@ function generateEnvMapTypeDefine( parameters ) {
 
 }
 
+/**
+ * 生成环境贴图模式定义
+ *
+ * @param parameters 参数对象
+ * @param parameters.envMap 环境贴图
+ * @param parameters.envMapMode 环境贴图模式
+ * @returns 返回环境贴图模式定义字符串
+ */
 function generateEnvMapModeDefine( parameters ) {
 
 	let envMapModeDefine = 'ENVMAP_MODE_REFLECTION';
@@ -406,6 +561,14 @@ function generateEnvMapModeDefine( parameters ) {
 
 }
 
+/**
+ * 生成环境贴图混合宏定义
+ *
+ * @param parameters 参数对象
+ * @param parameters.envMap 环境贴图
+ * @param parameters.combine 混合模式，可选值为MultiplyOperation、MixOperation、AddOperation
+ * @returns 返回环境贴图混合宏定义字符串
+ */
 function generateEnvMapBlendingDefine( parameters ) {
 
 	let envMapBlendingDefine = 'ENVMAP_BLENDING_NONE';
@@ -434,32 +597,57 @@ function generateEnvMapBlendingDefine( parameters ) {
 
 }
 
+/**
+ * 生成环境贴图立方体UV大小
+ *
+ * @param parameters 包含环境贴图立方体UV高度的参数对象
+ * @returns 包含texelWidth、texelHeight和maxMip的对象，如果图像高度为null则返回null
+ */
 function generateCubeUVSize( parameters ) {
 
+	// 获取环境贴图立方体UV高度
 	const imageHeight = parameters.envMapCubeUVHeight;
 
+	// 如果图像高度为null，则返回null
 	if ( imageHeight === null ) return null;
 
+	// 计算最大mip等级，根据图像高度的对数值减去2
 	const maxMip = Math.log2( imageHeight ) - 2;
 
+	// 计算纹理高度（texelHeight），即1除以图像高度
 	const texelHeight = 1.0 / imageHeight;
 
+	// 计算纹理宽度（texelWidth），即1除以（3乘以最大mip等级对应的2的幂次和7乘以16中的较大值）
 	const texelWidth = 1.0 / ( 3 * Math.max( Math.pow( 2, maxMip ), 7 * 16 ) );
 
+	// 返回一个包含texelWidth、texelHeight和maxMip的对象
 	return { texelWidth, texelHeight, maxMip };
 
 }
 
+/**
+ * @description
+ * 创建一个WebGLProgram对象，用于存储和管理OpenGL中的程序。
+ * 该函数会在第一次使用时进行初始化，并且会保存着程序的相关信息，包括属性、着色器、缓存等。
+ *
+ * @param {Object} renderer WebGLRenderer对象引用，用于访问WebGL上下文。
+ * @param {string} cacheKey 缓存的标识符，用于区分不同的着色器程序。
+ * @param {Object} parameters 包含着色器参数的对象，包括预处理指令、定义、着色器源代码等。
+ * @param {Object} bindingStates 包含绑定状态的对象，用于管理着色器程序的绑定状态。
+ *
+ * @returns {Object} WebGLProgram对象，包含了程序的相关信息和方法。
+ */
 function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 
 	// TODO Send this event to Three.js DevTools
 	// console.log( 'WebGLProgram', cacheKey );
-
+	// 获取webgl上下文
 	const gl = renderer.getContext();
-
+	// 自定义数据
 	const defines = parameters.defines;
-
+	// 获取顶点着色器
 	let vertexShader = parameters.vertexShader;
+	// 获取片段着色器
 	let fragmentShader = parameters.fragmentShader;
 
 	const shadowMapTypeDefine = generateShadowMapTypeDefine( parameters );
@@ -471,12 +659,12 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 	const customVertexExtensions = generateVertexExtensions( parameters );
 
 	const customDefines = generateDefines( defines );
-
+	// 创建program
 	const program = gl.createProgram();
 
 	let prefixVertex, prefixFragment;
 	let versionString = parameters.glslVersion ? '#version ' + parameters.glslVersion + '\n' : '';
-
+	// 构建顶点和片元着色器代码的前置字符串
 	if ( parameters.isRawShaderMaterial ) {
 
 		prefixVertex = [
@@ -819,9 +1007,11 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 		].filter( filterEmptyLine ).join( '\n' );
 
 	}
-
+	// 解析#include
 	vertexShader = resolveIncludes( vertexShader );
+	// 替换字符串中的光源数量参数
 	vertexShader = replaceLightNums( vertexShader, parameters );
+	// 替换字符串中的剪切平面数量
 	vertexShader = replaceClippingPlaneNums( vertexShader, parameters );
 
 	fragmentShader = resolveIncludes( fragmentShader );
@@ -861,13 +1051,15 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 		].join( '\n' ) + '\n' + prefixFragment;
 
 	}
-
+	// 得到最终的着色器代码
 	const vertexGlsl = versionString + prefixVertex + vertexShader;
 	const fragmentGlsl = versionString + prefixFragment + fragmentShader;
-
-	// console.log( '*VERTEX*', vertexGlsl );
-	// console.log( '*FRAGMENT*', fragmentGlsl );
-
+	// 创建着色器对象
+	/**
+	 *  const shader = gl.createShader( type );
+		gl.shaderSource( shader, string );
+		gl.compileShader( shader );
+	 */
 	const glVertexShader = WebGLShader( gl, gl.VERTEX_SHADER, vertexGlsl );
 	const glFragmentShader = WebGLShader( gl, gl.FRAGMENT_SHADER, fragmentGlsl );
 
@@ -875,7 +1067,6 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 	gl.attachShader( program, glFragmentShader );
 
 	// Force a particular attribute to index 0.
-
 	if ( parameters.index0AttributeName !== undefined ) {
 
 		gl.bindAttribLocation( program, 0, parameters.index0AttributeName );
@@ -883,24 +1074,33 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 	} else if ( parameters.morphTargets === true ) {
 
 		// programs with morphTargets displace position out of attribute 0
+		// 将 'position' 绑定到顶点属性位置 0
+		// 必须在调用 gl.linkProgram() 之前使用，否则不会生效
 		gl.bindAttribLocation( program, 0, 'position' );
 
 	}
 
 	gl.linkProgram( program );
 
+	/**
+	 * 首次使用时的处理函数
+	 *
+	 * @param self 当前对象
+	 * @returns 无返回值
+	 */
 	function onFirstUse( self ) {
 
 		// check for link errors
+		// 是否应该检车shader编译错误
 		if ( renderer.debug.checkShaderErrors ) {
-
+			// 获取日志信息
 			const programLog = gl.getProgramInfoLog( program ).trim();
 			const vertexLog = gl.getShaderInfoLog( glVertexShader ).trim();
 			const fragmentLog = gl.getShaderInfoLog( glFragmentShader ).trim();
 
 			let runnable = true;
 			let haveDiagnostics = true;
-
+			// 检查链接状态
 			if ( gl.getProgramParameter( program, gl.LINK_STATUS ) === false ) {
 
 				runnable = false;
@@ -912,7 +1112,7 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 				} else {
 
 					// default error reporting
-
+					// 打印错误日志
 					const vertexErrors = getShaderErrors( gl, glVertexShader, 'vertex' );
 					const fragmentErrors = getShaderErrors( gl, glFragmentShader, 'fragment' );
 
@@ -971,7 +1171,7 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 		// Crashes in iOS9 and iOS10. #18402
 		// gl.detachShader( program, glVertexShader );
 		// gl.detachShader( program, glFragmentShader );
-
+		// 用完就删除
 		gl.deleteShader( glVertexShader );
 		gl.deleteShader( glFragmentShader );
 
@@ -1041,9 +1241,7 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 		this.program = undefined;
 
 	};
-
-	//
-
+	
 	this.type = parameters.shaderType;
 	this.name = parameters.shaderName;
 	this.id = programIdCount ++;

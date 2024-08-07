@@ -17,7 +17,7 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 	const SUPPORTS_VERTEX_TEXTURES = capabilities.vertexTextures;
 
 	let precision = capabilities.precision;
-
+	// 材质编号映射
 	const shaderIDs = {
 		MeshDepthMaterial: 'depth',
 		MeshDistanceMaterial: 'distanceRGBA',
@@ -45,7 +45,7 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 		return `uv${ value }`;
 
 	}
-
+	// 获取对象属性 material和 geometry的属性
 	function getParameters( material, lights, shadows, scene, object ) {
 
 		const fog = scene.fog;
@@ -111,7 +111,7 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 		const IS_INSTANCEDMESH = object.isInstancedMesh === true;
 		const IS_BATCHEDMESH = object.isBatchedMesh === true;
-
+		//  是否有相应的纹理贴图
 		const HAS_MAP = !! material.map;
 		const HAS_MATCAP = !! material.matcap;
 		const HAS_ENVMAP = !! envMap;
@@ -371,6 +371,20 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 	}
 
+	/**
+	 * 获取程序缓存键
+	 *
+	 * @param parameters 参数对象
+	 * @param parameters.shaderID 着色器ID
+	 * @param parameters.customVertexShaderID 自定义顶点着色器ID
+	 * @param parameters.customFragmentShaderID 自定义片元着色器ID
+	 * @param parameters.defines 定义参数对象
+	 * @param parameters.defines.name 定义参数名称
+	 * @param parameters.defines.name 定义参数值
+	 * @param parameters.isRawShaderMaterial 是否为原始着色器材质
+	 * @param parameters.customProgramCacheKey 自定义程序缓存键
+	 * @returns 字符串类型，程序缓存键
+	 */
 	function getProgramCacheKey( parameters ) {
 
 		const array = [];
@@ -411,6 +425,13 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 	}
 
+	/**
+	 * 获取程序缓存键参数
+	 *
+	 * @param array 数组，用于存储参数
+	 * @param parameters 参数对象，包含各种参数
+	 * @returns 无返回值
+	 */
 	function getProgramCacheKeyParameters( array, parameters ) {
 
 		array.push( parameters.precision );
@@ -464,6 +485,13 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 	}
 
+	/**
+	 * 根据给定的参数数组，获取程序缓存键布尔值。
+	 *
+	 * @param array 数组，用于存储程序缓存键布尔值。
+	 * @param parameters 参数对象，包含不同的属性，用于确定哪些程序层需要启用。
+	 * @returns 无返回值，将结果直接存入数组参数中。
+	 */
 	function getProgramCacheKeyBooleans( array, parameters ) {
 
 		_programLayers.disableAll();
@@ -561,6 +589,12 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 	}
 
+	/**
+	 * 获取材质的统一变量
+	 *
+	 * @param material 材质对象
+	 * @returns 返回统一变量对象
+	 */
 	function getUniforms( material ) {
 
 		const shaderID = shaderIDs[ material.type ];
@@ -581,6 +615,13 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 	}
 
+	/**
+	 * 获取程序对象
+	 *
+	 * @param parameters 参数对象
+	 * @param cacheKey 缓存键
+	 * @returns 返回程序对象
+	 */
 	function acquireProgram( parameters, cacheKey ) {
 
 		let program;
@@ -612,12 +653,19 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 	}
 
+	/**
+	 * 释放程序资源
+	 *
+	 * @param program 要释放的程序资源
+	 * @returns 无返回值
+	 */
 	function releaseProgram( program ) {
 
 		if ( -- program.usedTimes === 0 ) {
 
 			// Remove from unordered set
 			const i = programs.indexOf( program );
+			// 删除最后一个
 			programs[ i ] = programs[ programs.length - 1 ];
 			programs.pop();
 

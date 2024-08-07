@@ -8,6 +8,12 @@ const _m1 = /*@__PURE__*/ new Matrix4();
 
 function WebGLMaterials( renderer, properties ) {
 
+	/**
+	 * 刷新变换统一变量
+	 *
+	 * @param map 地图对象
+	 * @param uniform 统一变量对象
+	 */
 	function refreshTransformUniform( map, uniform ) {
 
 		if ( map.matrixAutoUpdate === true ) {
@@ -20,6 +26,12 @@ function WebGLMaterials( renderer, properties ) {
 
 	}
 
+	/**
+	 * 刷新雾效统一变量
+	 *
+	 * @param uniforms 统一变量对象
+	 * @param fog 雾效对象
+	 */
 	function refreshFogUniforms( uniforms, fog ) {
 
 		fog.color.getRGB( uniforms.fogColor.value, getUnlitUniformColorSpace( renderer ) );
