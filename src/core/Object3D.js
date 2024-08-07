@@ -30,86 +30,103 @@ const _childremovedEvent = { type: 'childremoved', child: null };
 
 class Object3D extends EventDispatcher {
 
+	/**
+	 * Object3D 构造函数
+	 * 创建一个新的 Object3D 实例
+	 */
 	constructor() {
 
 		super();
+	// 标记该对象是否为3D对象
+	this.isObject3D = true;
 
-		this.isObject3D = true;
+	// 为该对象设置唯一ID
+	Object.defineProperty( this, 'id', { value: _object3DId ++ } );
 
-		Object.defineProperty( this, 'id', { value: _object3DId ++ } );
+	// 生成UUID作为该对象的唯一标识符
+	this.uuid = MathUtils.generateUUID();
 
-		this.uuid = MathUtils.generateUUID();
+	// 初始化对象名称和类型
+	this.name = '';
+	this.type = 'Object3D';
 
-		this.name = '';
-		this.type = 'Object3D';
+	// 初始化父对象和子对象数组
+	this.parent = null;
+	this.children = [];
 
-		this.parent = null;
-		this.children = [];
+	// 初始化向上方向，默认为Object3D.DEFAULT_UP
+	this.up = Object3D.DEFAULT_UP.clone();
 
-		this.up = Object3D.DEFAULT_UP.clone();
+	// 创建位置、旋转、四元数和缩放向量
+	const position = new Vector3();
+	const rotation = new Euler();
+	const quaternion = new Quaternion();
+	const scale = new Vector3( 1, 1, 1 );
 
-		const position = new Vector3();
-		const rotation = new Euler();
-		const quaternion = new Quaternion();
-		const scale = new Vector3( 1, 1, 1 );
+	// 旋转变化时的回调函数
+	function onRotationChange() {
+		quaternion.setFromEuler( rotation, false );
+	}
 
-		function onRotationChange() {
+	// 四元数变化时的回调函数
+	function onQuaternionChange() {
+		rotation.setFromQuaternion( quaternion, undefined, false );
+	}
 
-			quaternion.setFromEuler( rotation, false );
+	// 监听旋转和四元数的变化，并调用相应的回调函数
+	rotation._onChange( onRotationChange );
+	quaternion._onChange( onQuaternionChange );
 
+	// 定义对象的属性，并设置其配置
+	Object.defineProperties( this, {
+		position: {
+			configurable: true,
+			enumerable: true,
+			value: position
+		},
+		rotation: {
+			configurable: true,
+			enumerable: true,
+			value: rotation
+		},
+		quaternion: {
+			configurable: true,
+			enumerable: true,
+			value: quaternion
+		},
+		scale: {
+			configurable: true,
+			enumerable: true,
+			value: scale
+		},
+		modelViewMatrix: {
+			value: new Matrix4()
+		},
+		normalMatrix: {
+			value: new Matrix3()
 		}
+	} );
 
-		function onQuaternionChange() {
+	// 创建矩阵对象
+	this.matrix = new Matrix4();
+	this.matrixWorld = new Matrix4();
 
-			rotation.setFromQuaternion( quaternion, undefined, false );
+	// 设置矩阵是否自动更新的默认值
+	this.matrixAutoUpdate = Object3D.DEFAULT_MATRIX_AUTO_UPDATE;
 
-		}
+	// 设置世界矩阵是否自动更新的默认值，由渲染器检查
+	this.matrixWorldAutoUpdate = Object3D.DEFAULT_MATRIX_WORLD_AUTO_UPDATE; // checked by the renderer
+	this.matrixWorldNeedsUpdate = false;
 
-		rotation._onChange( onRotationChange );
-		quaternion._onChange( onQuaternionChange );
+	// 初始化图层和可见性
+	this.layers = new layers();
+	this.visible = true;
 
-		Object.defineProperties( this, {
-			position: {
-				configurable: true,
-				enumerable: true,
-				value: position
-			},
-			rotation: {
-				configurable: true,
-				enumerable: true,
-				value: rotation
-			},
-			quaternion: {
-				configurable: true,
-				enumerable: true,
-				value: quaternion
-			},
-			scale: {
-				configurable: true,
-				enumerable: true,
-				value: scale
-			},
-			modelViewMatrix: {
-				value: new Matrix4()
-			},
-			normalMatrix: {
-				value: new Matrix3()
-			}
-		} );
+	// 设置是否投射和接收阴影
+	this.castShadow = false;
+	this.receiveShadow = false;
 
-		this.matrix = new Matrix4();
-		this.matrixWorld = new Matrix4();
-
-		this.matrixAutoUpdate = Object3D.DEFAULT_MATRIX_AUTO_UPDATE;
-
-		this.matrixWorldAutoUpdate = Object3D.DEFAULT_MATRIX_WORLD_AUTO_UPDATE; // checked by the renderer
-		this.matrixWorldNeedsUpdate = false;
-
-		this.layers = new Layers();
-		this.visible = true;
-
-		this.castShadow = false;
-		this.receiveShadow = false;
+	// 设置对象是否进行视锥体裁剪和渲染
 
 		this.frustumCulled = true;
 		this.renderOrder = 0;
@@ -128,24 +145,44 @@ class Object3D extends EventDispatcher {
 
 	onAfterRender( /* renderer, scene, camera, geometry, material, group */ ) {}
 
+	/**
+	 * 应用一个4x4矩阵到当前对象上
+	 *
+	 * @param matrix 传入需要应用的4x4矩阵
+	 */
 	applyMatrix4( matrix ) {
 
+		// 如果自动更新矩阵标志为true，则更新矩阵
 		if ( this.matrixAutoUpdate ) this.updateMatrix();
 
+		// 将传入的矩阵与当前矩阵进行预乘操作
 		this.matrix.premultiply( matrix );
 
+		// 将预乘后的矩阵分解为位置、四元数和缩放值
 		this.matrix.decompose( this.position, this.quaternion, this.scale );
 
 	}
 
+	/**
+	 * 将传入的四元数 q 与当前对象的四元数相乘，并将结果赋值给当前对象的四元数
+	 *
+	 * @param q 要进行乘法的四元数
+	 * @returns 当前对象
+	 */
 	applyQuaternion( q ) {
-
+		// 将传入的四元数 q 与当前对象的四元数相乘，结果赋值给当前对象的四元数
 		this.quaternion.premultiply( q );
 
+		// 返回当前对象
 		return this;
-
 	}
 
+	/**
+	 * 根据给定的轴和角度设置旋转。
+	 *
+	 * @param axis 轴向量，假设已标准化。
+	 * @param angle 旋转角度，以弧度为单位。
+	 */
 	setRotationFromAxisAngle( axis, angle ) {
 
 		// assumes axis is normalized
@@ -154,12 +191,23 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 从欧拉角设置旋转
+	 *
+	 * @param euler 欧拉角数组，包含三个元素，分别对应x、y、z轴上的旋转角度
+	 * @returns 无返回值
+	 */
 	setRotationFromEuler( euler ) {
 
 		this.quaternion.setFromEuler( euler, true );
 
 	}
 
+	/**
+	 * 根据给定的旋转矩阵设置物体的四元数。
+	 *
+	 * @param m 一个纯旋转矩阵，假设其上部的3x3为纯旋转矩阵（即未经缩放）。
+	 */
 	setRotationFromMatrix( m ) {
 
 		// assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
@@ -168,6 +216,11 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 从四元数设置旋转
+	 *
+	 * @param q 四元数对象
+	 */
 	setRotationFromQuaternion( q ) {
 
 		// assumes q is normalized
@@ -176,6 +229,13 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 在对象空间内绕指定轴旋转对象
+	 *
+	 * @param axis 旋转轴，假设已归一化
+	 * @param angle 旋转角度
+	 * @returns 返回当前对象，方便链式调用
+	 */
 	rotateOnAxis( axis, angle ) {
 
 		// rotate object on axis in object space
@@ -189,14 +249,21 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 在世界空间中的轴上旋转对象
+	 *
+	 * @param axis 轴向量，假定已归一化
+	 * @param angle 旋转角度，以弧度为单位
+	 * @returns 返回当前对象
+	 */
 	rotateOnWorldAxis( axis, angle ) {
 
-		// rotate object on axis in world space
-		// axis is assumed to be normalized
-		// method assumes no rotated parent
-
+		// 在世界空间中根据指定的轴进行旋转
+		// 假设axis已经被单位化
+		// 此方法假设没有旋转的父对象
 		_q1.setFromAxisAngle( axis, angle );
 
+		// 将_q1的四元数与当前对象的四元数相乘
 		this.quaternion.premultiply( _q1 );
 
 		return this;
@@ -221,6 +288,13 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 沿着轴在对象空间中移动对象一定距离
+	 *
+	 * @param axis 轴向量，假设已经标准化
+	 * @param distance 移动的距离
+	 * @returns 返回当前对象
+	 */
 	translateOnAxis( axis, distance ) {
 
 		// translate object by distance along axis in object space
@@ -268,6 +342,15 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 使物体朝向指定的坐标点
+	 *
+	 * @param x 目标坐标点的x坐标或三维向量对象
+	 * @param y 目标坐标点的y坐标（当x为三维向量对象时，此参数无效）
+	 * @param z 目标坐标点的z坐标（当x为三维向量对象时，此参数无效）
+	 * @returns 无返回值
+	 * @note 此方法不支持具有非均匀缩放父对象的物体
+	 */
 	lookAt( x, y, z ) {
 
 		// This method does not support objects having non-uniformly-scaled parent(s)
@@ -492,11 +575,8 @@ class Object3D extends EventDispatcher {
 	}
 
 	getWorldPosition( target ) {
-
-
-		
 		this.updateWorldMatrix( true, false );
-
+		//从矩阵中获取世界坐标
 		return target.setFromMatrixPosition( this.matrixWorld );
 
 	}
@@ -511,6 +591,12 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 获取目标对象的缩放比例
+	 *
+	 * @param target 目标对象，用于存储返回的缩放比例
+	 * @returns 返回目标对象的缩放比例
+	 */
 	getWorldScale( target ) {
 
 		this.updateWorldMatrix( true, false );
@@ -521,6 +607,12 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 获取世界方向向量
+	 *
+	 * @param target 目标向量
+	 * @returns 返回世界方向向量
+	 */
 	getWorldDirection( target ) {
 
 		this.updateWorldMatrix( true, false );
@@ -577,6 +669,11 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 更新矩阵
+	 *
+	 * 将位置、四元数和缩放组合成一个矩阵，并设置matrixWorld需要更新
+	 */
 	updateMatrix() {
 
 		this.matrix.compose( this.position, this.quaternion, this.scale );
@@ -585,6 +682,12 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 更新矩阵世界
+	 *
+	 * @param force 是否强制更新，默认为false
+	 * @returns 无返回值
+	 */
 	updateMatrixWorld( force ) {
 
 		if ( this.matrixAutoUpdate ) this.updateMatrix();
@@ -625,6 +728,12 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	/**
+	 * 更新当前对象的世界矩阵。
+	 *
+	 * @param updateParents 是否更新父级的世界矩阵。默认为 false。
+	 * @param updateChildren 是否更新子对象的世界矩阵。默认为 false。
+	 */
 	updateWorldMatrix( updateParents, updateChildren ) {
 
 		const parent = this.parent;

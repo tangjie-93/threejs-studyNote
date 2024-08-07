@@ -5,6 +5,11 @@ let _sourceId = 0;
 
 class Source {
 
+	/**
+	 * 构造函数
+	 *
+	 * @param data 初始数据，默认为null
+	 */
 	constructor( data = null ) {
 
 		this.isSource = true;
@@ -91,6 +96,12 @@ class Source {
 
 }
 
+/**
+ * 序列化图片
+ *
+ * @param image 图片对象，可以是HTMLImageElement、HTMLCanvasElement或ImageBitmap类型，也可以是包含data属性的DataTexture类型
+ * @returns 返回序列化后的图片数据，如果是HTMLImageElement、HTMLCanvasElement或ImageBitmap类型，则返回data URL字符串；如果是DataTexture类型，则返回包含data、width、height和type的对象
+ */
 function serializeImage( image ) {
 
 	if ( ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement ) ||
