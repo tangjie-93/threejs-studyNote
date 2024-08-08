@@ -6,28 +6,34 @@ import * as MathUtils from '../math/MathUtils.js';
 let _materialId = 0;
 
 class Material extends EventDispatcher {
-
 	constructor() {
 
 		super();
 
+		// 设置材质标志为true
 		this.isMaterial = true;
 
+		// 使用_materialId自增变量设置材质的唯一id
 		Object.defineProperty( this, 'id', { value: _materialId ++ } );
 
+		// 生成UUID作为材质的uuid
 		this.uuid = MathUtils.generateUUID();
 
+		// 初始化材质的名称和类型
 		this.name = '';
 		this.type = 'Material';
 
+		// 设置材质的混合模式、渲染面和顶点颜色
 		this.blending = NormalBlending;
 		this.side = FrontSide;
 		this.vertexColors = false;
 
+		// 设置材质的透明度相关属性
 		this.opacity = 1;
 		this.transparent = false;
 		this.alphaHash = false;
 
+		// 设置材质的混合因子和混合方程
 		this.blendSrc = SrcAlphaFactor;
 		this.blendDst = OneMinusSrcAlphaFactor;
 		this.blendEquation = AddEquation;
@@ -37,10 +43,12 @@ class Material extends EventDispatcher {
 		this.blendColor = new Color( 0, 0, 0 );
 		this.blendAlpha = 0;
 
+		// 设置材质的深度测试相关属性
 		this.depthFunc = LessEqualDepth;
 		this.depthTest = true;
 		this.depthWrite = true;
 
+		// 设置材质的模板相关属性
 		this.stencilWriteMask = 0xff;
 		this.stencilFunc = AlwaysStencilFunc;
 		this.stencilRef = 0;
@@ -50,38 +58,56 @@ class Material extends EventDispatcher {
 		this.stencilZPass = KeepStencilOp;
 		this.stencilWrite = false;
 
+		// 设置材质的裁剪平面和阴影相关属性
 		this.clippingPlanes = null;
 		this.clipIntersection = false;
 		this.clipShadows = false;
 
+		// 设置材质的阴影面
 		this.shadowSide = null;
 
+		// 设置材质的颜色写入属性
 		this.colorWrite = true;
 
+		// 设置材质的精度，覆盖渲染器的默认精度
 		this.precision = null; // override the renderer's default precision for this material
 
+		// 设置材质的多边形偏移属性
 		this.polygonOffset = false;
 		this.polygonOffsetFactor = 0;
 		this.polygonOffsetUnits = 0;
 
+		// 设置材质的抖动属性
 		this.dithering = false;
 
+		// 设置材质的alpha测试、预乘alpha和单通道渲染属性
 		this.alphaToCoverage = false;
 		this.premultipliedAlpha = false;
 		this.forceSinglePass = false;
 
+		// 设置材质的可见性
 		this.visible = true;
 
+		// 设置材质的色调映射属性
 		this.toneMapped = true;
 
+		// 设置材质的自定义数据
 		this.userData = {};
 
+		// 设置材质的版本
 		this.version = 0;
 
+		// 设置材质的alpha测试属性（私有属性）
 		this._alphaTest = 0;
 
 	}
 
+    /**
+     * @description
+     * 获取当前的透明测试值。
+     *
+     * @returns {number} 返回一个数字，表示当前的透明测试值。
+     */
 	get alphaTest() {
 
 		return this._alphaTest;
@@ -100,14 +126,36 @@ class Material extends EventDispatcher {
 
 	}
 
+    /**
+     * @description
+     * 在编译之前执行的方法，可以用于修改shader对象或者renderer。
+     * 该方法不接受任何参数。
+     *
+     * @param {Object} shaderobject - Shader对象，包含了shader的属性和方法。
+     * @param {WebGLRenderer} renderer - WebGLRenderer对象，包含了当前场景的渲染信息。
+     *
+     * @returns {void} 无返回值。
+     */
 	onBeforeCompile( /* shaderobject, renderer */ ) {}
 
+    /**
+     * 生成自定义程序缓存的键值。用于在编译时添加一些额外的处理，以确保每次编译后的代码都不同。
+     *
+     * @returns {string} 返回一个字符串类型的键值，表示自定义程序缓存的唯一标识。
+     */
 	customProgramCacheKey() {
 
 		return this.onBeforeCompile.toString();
 
 	}
 
+    /**
+     * @method setValues
+     * @param {Object} values 需要设置的属性值，格式为{key:value,...}
+     * @description 根据传入的属性值对当前实例进行赋值操作，如果属性不存在或者是undefined则会报错。
+     * 如果属性值是颜色类型（Color），则使用set方法进行赋值；如果属性值是向量类型（Vector3），则使用copy方法进行赋值。
+     * 其他情况下直接使用赋值操作。
+     */
 	setValues( values ) {
 
 		if ( values === undefined ) return;
@@ -150,6 +198,17 @@ class Material extends EventDispatcher {
 
 	}
 
+    /**
+     * @description
+     * 将当前材质对象转换为 JSON 格式的数据。
+     * 如果是根对象，则会额外包含所有缓存的图片和纹理信息。
+     *
+     * @param {Object} [meta] 可选参数，用于指定一个字符串或者一个对象，表示需要保存的元数据。
+     * 如果传入了一个字符串，那么该字符串将作为 meta.textures 和 meta.images 的键名；
+     * 如果传入了一个对象，那么该对象将作为 meta 的值。
+     *
+     * @returns {Object} 返回一个 JSON 格式的对象，包含了当前材质对象的属性和元数据。
+     */
 	toJSON( meta ) {
 
 		const isRootObject = ( meta === undefined || typeof meta === 'string' );
@@ -417,12 +476,24 @@ class Material extends EventDispatcher {
 
 	}
 
+    /**
+     * 克隆一个新的对象，返回该对象。
+     *
+     * @returns {Object3D} 返回一个新的 Object3D 实例。
+     */
 	clone() {
 
 		return new this.constructor().copy( this );
 
 	}
 
+    /**
+     * 复制一个材质的属性到当前材质对象中。
+     * 该方法会深度克隆所有属性，包括用户自定义数据。
+     *
+     * @param {Material} source 要被复制的材质对象。
+     * @returns {Material} 返回当前材质对象，已经被修改为复制过来的属性。
+     */
 	copy( source ) {
 
 		this.name = source.name;
@@ -504,24 +575,49 @@ class Material extends EventDispatcher {
 
 	}
 
+    /**
+     * 销毁对象，触发 dispose 事件
+     *
+     * @returns {void}
+     */
 	dispose() {
 
 		this.dispatchEvent( { type: 'dispose' } );
 
 	}
 
+    /**
+     * @param {boolean} value - 是否需要更新，如果为true则版本号加1
+     */
 	set needsUpdate( value ) {
 
 		if ( value === true ) this.version ++;
 
 	}
 
+    /**
+     * @deprecated since r166
+     * @method onBuild
+     * @param {ShaderObject} shaderobject
+     * @param {Renderer} renderer
+     */
 	onBuild( /* shaderobject, renderer */ ) {
 
 		console.warn( 'Material: onBuild() has been removed.' ); // @deprecated, r166
 
 	}
 
+    /**
+     * @deprecated, r166
+     * onBeforeRender函数已被弃用，请使用更新后的onBeforeRender函数。
+     *
+     * @param renderer 渲染器对象（可选）
+     * @param scene 场景对象（可选）
+     * @param camera 相机对象（可选）
+     * @param geometry 几何体对象（可选）
+     * @param object 物体对象（可选）
+     * @param group 组对象（可选）
+     */
 	onBeforeRender( /* renderer, scene, camera, geometry, object, group */ ) {
 
 		console.warn( 'Material: onBeforeRender() has been removed.' ); // @deprecated, r166

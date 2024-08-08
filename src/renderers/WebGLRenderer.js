@@ -372,15 +372,15 @@ class WebGLRenderer {
 				}
 			 */
 			programCache = new WebGLPrograms( _this, cubemaps, cubeuvmaps, extensions, capabilities, bindingStates, clipping );
-			// 初始化 WebGL 材质
+			// 初始化 WebGL 材质 主要是将material上的属性赋值到uniforms上
 			materials = new WebGLMaterials( _this, properties );
 
-			// 初始化 WebGL 渲染列表
+			// 初始化 WebGL 渲染列表 存储渲染数据用的
 			renderLists = new WebGLRenderLists();
-			// 初始化 WebGL 渲染状态
+			// 初始化 WebGL 渲染状态 主要是处理跟光源相关的代码
 			renderStates = new WebGLRenderStates( extensions );
 
-			// 初始化 WebGL 背景
+			// 初始化 WebGL 背景 实际上是调用 gl.clearColor( r, g, b, a );
 			background = new WebGLBackground( _this, cubemaps, cubeuvmaps, state, objects, _alpha, premultipliedAlpha );
 			// 初始化 WebGL 阴影贴图
 			shadowMap = new WebGLShadowMap( _this, objects, capabilities );
@@ -388,9 +388,9 @@ class WebGLRenderer {
 			// 初始化 WebGL 均匀变量组
 			uniformsGroups = new WebGLUniformsGroups( _gl, info, capabilities, state );
 
-			// 初始化 WebGL 缓冲区渲染器
+			// 初始化 WebGL 缓冲区渲染器 主要执行 gl.drawArrays( mode, start, count )和gl.drawArraysInstanced( mode, start, count, primcount );
 			bufferRenderer = new WebGLBufferRenderer( _gl, extensions, info );
-			// 初始化 WebGL 索引缓冲区渲染器
+			// 初始化 WebGL 索引缓冲区渲染器 主要执行 gl.drawElements( mode, count, type, start * bytesPerElement )和gl.drawElementsInstanced( mode, count, type, start * bytesPerElement, primcount );
 			indexedBufferRenderer = new WebGLIndexedBufferRenderer( _gl, extensions, info );
 
 			// 设置 WebGLInfo 的 programs 属性

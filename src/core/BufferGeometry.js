@@ -25,28 +25,42 @@ class BufferGeometry extends EventDispatcher {
 
 		super();
 
+		// 设置是否为BufferGeometry类型
 		this.isBufferGeometry = true;
 
+		// 定义id属性，并为其赋值一个递增的_id值
 		Object.defineProperty( this, 'id', { value: _id ++ } );
 
+		// 生成一个UUID作为uuid属性值
 		this.uuid = MathUtils.generateUUID();
 
+		// 设置name属性为空字符串
 		this.name = '';
+		// 设置type属性为'BufferGeometry'
 		this.type = 'BufferGeometry';
 
+		// 设置index属性为null
 		this.index = null;
+		// 初始化attributes属性为一个空对象
 		this.attributes = {};
 
+		// 初始化morphAttributes属性为一个空对象
 		this.morphAttributes = {};
+		// 设置morphTargetsRelative属性为false
 		this.morphTargetsRelative = false;
 
+		// 初始化groups属性为一个空数组
 		this.groups = [];
 
+		// 设置boundingBox属性为null
 		this.boundingBox = null;
+		// 设置boundingSphere属性为null
 		this.boundingSphere = null;
 
+		// 设置drawRange属性为一个对象，包含start和count两个属性，初始值分别为0和Infinity
 		this.drawRange = { start: 0, count: Infinity };
 
+		// 初始化userData属性为一个空对象
 		this.userData = {};
 
 	}
@@ -188,6 +202,12 @@ class BufferGeometry extends EventDispatcher {
 		return this;
 	}
 
+	/**
+	 * 应用四元数
+	 *
+	 * @param q 四元数对象
+	 * @returns 返回当前对象
+	 */
 	applyQuaternion( q ) {
 
 		_m1.makeRotationFromQuaternion( q );
@@ -270,6 +290,11 @@ class BufferGeometry extends EventDispatcher {
 
 	}
 
+	/**
+	 * 将当前对象居中
+	 *
+	 * @returns 返回当前对象
+	 */
 	center() {
 
 		this.computeBoundingBox();
@@ -282,6 +307,12 @@ class BufferGeometry extends EventDispatcher {
 
 	}
 
+	/**
+	 * 根据点集设置位置属性
+	 *
+	 * @param points 点集数组，每个点包含x、y坐标，可选z坐标
+	 * @returns 返回当前对象，便于链式调用
+	 */
 	setFromPoints( points ) {
 
 		const position = [];
@@ -299,6 +330,11 @@ class BufferGeometry extends EventDispatcher {
 
 	}
 
+	/**
+	 * 计算包围盒
+	 *
+	 * @returns 无返回值
+	 */
 	computeBoundingBox() {
 
 		if ( this.boundingBox === null ) {
@@ -369,6 +405,11 @@ class BufferGeometry extends EventDispatcher {
 
 	}
 
+	/**
+	 * 计算包围球
+	 *
+	 * @returns 无返回值
+	 */
 	computeBoundingSphere() {
 
 		if ( this.boundingSphere === null ) {
@@ -481,6 +522,9 @@ class BufferGeometry extends EventDispatcher {
 
 	}
 
+	/**
+	 * 计算顶点切线
+	 */
 	computeTangents() {
 
 		const index = this.index;
@@ -640,6 +684,11 @@ class BufferGeometry extends EventDispatcher {
 
 	}
 
+	/**
+	 * 计算顶点法线
+	 *
+	 * @returns 无返回值
+	 */
 	computeVertexNormals() {
 
 		const index = this.index;

@@ -4,6 +4,11 @@ import { Vector2 } from '../../math/Vector2.js';
 import { Vector3 } from '../../math/Vector3.js';
 import { UniformsLib } from '../shaders/UniformsLib.js';
 
+/**
+ * 缓存统一变量对象
+ *
+ * @returns 返回包含各种灯光类型的统一变量对象的对象
+ */
 function UniformsCache() {
 
 	const lights = {};
@@ -79,6 +84,12 @@ function UniformsCache() {
 
 }
 
+/**
+ * ShadowUniformsCache函数用于创建一个阴影统一变量缓存对象
+ *
+ * @returns 返回一个对象，包含以下属性：
+ *   - get: 一个函数，用于获取指定光源的阴影统一变量
+ */
 function ShadowUniformsCache() {
 
 	const lights = {};
@@ -147,12 +158,27 @@ function ShadowUniformsCache() {
 
 let nextVersion = 0;
 
+/**
+ * 根据灯光是否投射阴影和是否使用贴图进行排序
+ *
+ * @param lightA 灯光A
+ * @param lightB 灯光B
+ * @returns 返回两个灯光的排序权重差值
+ */
 function shadowCastingAndTexturingLightsFirst( lightA, lightB ) {
 
 	return ( lightB.castShadow ? 2 : 0 ) - ( lightA.castShadow ? 2 : 0 ) + ( lightB.map ? 1 : 0 ) - ( lightA.map ? 1 : 0 );
 
 }
 
+/**
+ * @description
+ * 创建一个WebGLLights对象，用于管理场景中的光源信息。包括环境光、平行光、点光源、聚光灯和区域光源等。
+ * 该对象提供了setup函数来更新光源信息，以及setupView函数来更新视图中的光源信息。
+ *
+ * @param {Object} extensions 可选参数，包含有关当前支持的WebGL扩展的信息，格式为{ has( extensionName ) }，其中extensionName是字符串类型。
+ * @returns {Object} 返回一个对象，包含如下属性：setup、setupView、state。setup函数用于更新光源信息，setupView函数用于更新视图中的光源信息，state属性包含了所有的光源信息。
+ */
 function WebGLLights( extensions ) {
 
 	const cache = new UniformsCache();
@@ -240,7 +266,7 @@ function WebGLLights( extensions ) {
 			const distance = light.distance;
 
 			const shadowMap = ( light.shadow && light.shadow.map ) ? light.shadow.map.texture : null;
-
+			// 判断光源类型
 			if ( light.isAmbientLight ) {
 
 				r += color.r * intensity;

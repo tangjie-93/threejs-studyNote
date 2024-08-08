@@ -49,6 +49,15 @@ function WebGLMaterials( renderer, properties ) {
 
 	}
 
+	/**
+	 * 刷新材质统一变量
+	 *
+	 * @param uniforms 统一变量对象
+	 * @param material 材质对象
+	 * @param pixelRatio 像素比
+	 * @param height 高度
+	 * @param transmissionRenderTarget 透射渲染目标
+	 */
 	function refreshMaterialUniforms( uniforms, material, pixelRatio, height, transmissionRenderTarget ) {
 
 		if ( material.isMeshBasicMaterial ) {

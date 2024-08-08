@@ -47,6 +47,12 @@ function reversePainterSortStable( a, b ) {
 }
 
 
+/**
+ * WebGL渲染列表
+ *
+ * @class WebGLRenderList
+ * @description WebGL渲染列表类，用于管理不同渲染顺序的渲染项
+ */
 function WebGLRenderList() {
 
 	const renderItems = [];
@@ -73,6 +79,17 @@ function WebGLRenderList() {
 
 	}
 
+	/**
+	 * 获取下一个渲染项
+	 *
+	 * @param object 渲染项对应的对象
+	 * @param geometry 渲染项对应的几何体
+	 * @param material 渲染项对应的材质
+	 * @param groupOrder 渲染项所在的组顺序
+	 * @param z 渲染项的z值
+	 * @param group 渲染项所在的组
+	 * @returns 下一个渲染项
+	 */
 	function getNextRenderItem( object, geometry, material, groupOrder, z, group ) {
 
 		let renderItem = renderItems[ renderItemsIndex ];
@@ -111,6 +128,16 @@ function WebGLRenderList() {
 
 	}
 
+	/**
+	 * 将渲染项添加到相应的数组中
+	 *
+	 * @param object 对象
+	 * @param geometry 几何体
+	 * @param material 材质
+	 * @param groupOrder 组顺序
+	 * @param z z轴位置
+	 * @param group 组
+	 */
 	function push( object, geometry, material, groupOrder, z, group ) {
 
 		const renderItem = getNextRenderItem( object, geometry, material, groupOrder, z, group );
@@ -131,6 +158,16 @@ function WebGLRenderList() {
 
 	}
 
+	/**
+	 * 在指定数组中插入一个渲染项
+	 *
+	 * @param object 对象
+	 * @param geometry 几何体
+	 * @param material 材质
+	 * @param groupOrder 组顺序
+	 * @param z Z轴位置
+	 * @param group 组
+	 */
 	function unshift( object, geometry, material, groupOrder, z, group ) {
 
 		const renderItem = getNextRenderItem( object, geometry, material, groupOrder, z, group );
@@ -151,6 +188,12 @@ function WebGLRenderList() {
 
 	}
 
+	/**
+	 * 对数组进行排序
+	 *
+	 * @param customOpaqueSort 自定义不透明排序函数，可选
+	 * @param customTransparentSort 自定义透明排序函数，可选
+	 */
 	function sort( customOpaqueSort, customTransparentSort ) {
 
 		if ( opaque.length > 1 ) opaque.sort( customOpaqueSort || painterSortStable );
@@ -198,6 +241,12 @@ function WebGLRenderList() {
 
 }
 
+/**
+ * WebGL渲染列表类
+ * 用于创建并管理WebGL渲染列表
+ *
+ * @class WebGLRenderLists
+ */
 function WebGLRenderLists() {
 
 	let lists = new WeakMap();

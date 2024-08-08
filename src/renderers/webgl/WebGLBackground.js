@@ -26,6 +26,12 @@ function WebGLBackground( renderer, cubemaps, cubeuvmaps, state, objects, alpha,
 	let currentBackgroundVersion = 0;
 	let currentTonemapping = null;
 
+	/**
+	 * 获取场景的背景
+	 *
+	 * @param scene 场景对象
+	 * @returns 返回背景对象，如果场景没有背景则返回null
+	 */
 	function getBackground( scene ) {
 
 		let background = scene.isScene === true ? scene.background : null;
