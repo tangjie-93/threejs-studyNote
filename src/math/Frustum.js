@@ -8,12 +8,37 @@ const _vector = /*@__PURE__*/ new Vector3();
 
 class Frustum {
 
+    /**
+     * @description
+     * 创建一个新的 Frustum 实例。
+     *
+     * @param {Plane} [p0=new Plane()] - 第一个平面，默认为新的 Plane 实例
+     * @param {Plane} [p1=new Plane()] - 第二个平面，默认为新的 Plane 实例
+     * @param {Plane} [p2=new Plane()] - 第三个平面，默认为新的 Plane 实例
+     * @param {Plane} [p3=new Plane()] - 第四个平面，默认为新的 Plane 实例
+     * @param {Plane} [p4=new Plane()] - 第五个平面，默认为新的 Plane 实例
+     * @param {Plane} [p5=new Plane()] - 第六个平面，默认为新的 Plane 实例
+     *
+     * @returns {Frustum} 返回一个新的 Frustum 实例
+     */
 	constructor( p0 = new Plane(), p1 = new Plane(), p2 = new Plane(), p3 = new Plane(), p4 = new Plane(), p5 = new Plane() ) {
 
 		this.planes = [ p0, p1, p2, p3, p4, p5 ];
 
 	}
 
+    /**
+     * @method set
+     * @param {THREE.Plane} p0
+     * @param {THREE.Plane} p1
+     * @param {THREE.Plane} p2
+     * @param {THREE.Plane} p3
+     * @param {THREE.Plane} p4
+     * @param {THREE.Plane} p5
+     * @return {Box3} 返回自身以支持链式调用
+     *
+     * 设置Box3的六个面。
+     */
 	set( p0, p1, p2, p3, p4, p5 ) {
 
 		const planes = this.planes;
@@ -29,6 +54,13 @@ class Frustum {
 
 	}
 
+    /**
+     * @method copy
+     * @param {Frustum} frustum 待复制的Frustum对象
+     * @returns {Frustum} 返回自身，表示已经被复制了
+     *
+     * 将指定的Frustum对象复制到当前Frustum对象中。
+     */
 	copy( frustum ) {
 
 		const planes = this.planes;
@@ -43,6 +75,14 @@ class Frustum {
 
 	}
 
+	/**
+	 * 从投影矩阵中设置视图锥体。
+	 *
+	 * @param m 投影矩阵。
+	 * @param coordinateSystem 坐标系统，默认为WebGL坐标系统。
+	 * @returns 返回当前视图锥体对象。
+	 * @throws 当坐标系统无效时，抛出错误。
+	 */
 	setFromProjectionMatrix( m, coordinateSystem = WebGLCoordinateSystem ) {
 
 		const planes = this.planes;
@@ -76,6 +116,13 @@ class Frustum {
 
 	}
 
+    /**
+     * @method intersectsObject
+     * @param {THREE.Object3D} object THREE.Object3D对象
+     * @returns {boolean} 返回true表示相交，否则为false
+     *
+     * 判断球与指定的THREE.Object3D对象是否相交。如果对象没有绑定半径，会先计算其包围球并应用世界变换。
+     */
 	intersectsObject( object ) {
 
 		if ( object.boundingSphere !== undefined ) {
@@ -98,6 +145,12 @@ class Frustum {
 
 	}
 
+    /**
+     * @method intersectsSprite
+     * @param {THREE.Sprite} sprite
+     * @returns {boolean}
+     * @description 判断是否与精灵相交。返回布尔值，表示是否相交。
+     */
 	intersectsSprite( sprite ) {
 
 		_sphere.center.set( 0, 0, 0 );
@@ -108,6 +161,13 @@ class Frustum {
 
 	}
 
+    /**
+     * @method intersectsSphere
+     * @param {THREE.Sphere} sphere
+     * @returns {boolean} True if the frustum intersects the given sphere, otherwise false.
+     * @description
+     * Checks whether the frustum intersects with a given sphere.
+     */
 	intersectsSphere( sphere ) {
 
 		const planes = this.planes;
@@ -130,6 +190,13 @@ class Frustum {
 
 	}
 
+    /**
+     * @method intersectsBox
+     * @param {THREE.Box3} box
+     * @return {boolean} True if the frustum intersects the given box, otherwise false.
+     * @description
+     * Checks whether the frustum intersects with a given bounding box.
+     */
 	intersectsBox( box ) {
 
 		const planes = this.planes;
@@ -156,6 +223,12 @@ class Frustum {
 
 	}
 
+    /**
+     * @method containsPoint
+     * @param {THREE.Vector3} point
+     * @returns {boolean} True if the bounding box contains the given point, otherwise False.
+     * @description 判断包围盒是否包含给定的点。
+     */
 	containsPoint( point ) {
 
 		const planes = this.planes;
@@ -174,6 +247,11 @@ class Frustum {
 
 	}
 
+    /**
+     * 复制当前对象，返回一个新的对象。
+     *
+     * @returns {Object3D} 返回一个新的 Object3D 实例，它是当前对象的深度克隆。
+     */
 	clone() {
 
 		return new this.constructor().copy( this );
