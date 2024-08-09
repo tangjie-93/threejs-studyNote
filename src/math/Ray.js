@@ -18,6 +18,13 @@ class Ray {
 
 	}
 
+	/**
+	 * 设置起始点和方向向量
+	 *
+	 * @param origin 起始点，类型为 THREE.Vector3
+	 * @param direction 方向向量，类型为 THREE.Vector3
+	 * @returns 返回当前对象，类型为 THREE.Raycaster
+	 */
 	set( origin, direction ) {
 
 		this.origin.copy( origin );
@@ -36,12 +43,25 @@ class Ray {
 
 	}
 
+	/**
+	 * 在指定时间 t 到达目标点 target 的位置
+	 *
+	 * @param t 时间
+	 * @param target 目标点
+	 * @returns 返回目标点 target 在时间 t 时的位置
+	 */
 	at( t, target ) {
 
 		return target.copy( this.origin ).addScaledVector( this.direction, t );
 
 	}
 
+	/**
+	 * 使对象朝向指定向量
+	 *
+	 * @param v 目标向量
+	 * @returns 返回当前对象
+	 */
 	lookAt( v ) {
 
 		this.direction.copy( v ).sub( this.origin ).normalize();
@@ -50,6 +70,12 @@ class Ray {
 
 	}
 
+	/**
+	 * 重置物体位置
+	 *
+	 * @param t 时间值
+	 * @returns 返回当前对象
+	 */
 	recast( t ) {
 
 		this.origin.copy( this.at( t, _vector ) );
@@ -58,6 +84,13 @@ class Ray {
 
 	}
 
+	/**
+	 * 计算点到射线上最近的点
+	 *
+	 * @param point 给定的点
+	 * @param target 存储计算结果的向量
+	 * @returns 返回计算得到的最近点向量
+	 */
 	closestPointToPoint( point, target ) {
 
 		target.subVectors( point, this.origin );
