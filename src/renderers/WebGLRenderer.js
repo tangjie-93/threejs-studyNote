@@ -1475,7 +1475,7 @@ class WebGLRenderer {
 								_vector4.copy( geometry.boundingSphere.center );
 
 							}
-
+							// 计算矩阵 得到物体最终的投影坐标
 							_vector4
 								.applyMatrix4( object.matrixWorld )
 								.applyMatrix4( _projScreenMatrix );

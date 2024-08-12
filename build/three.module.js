@@ -7634,7 +7634,7 @@ class Object3D extends EventDispatcher {
 		this.matrixWorldNeedsUpdate = false;
 
 		// 初始化图层和可见性
-		this.layers = new layers();
+		this.layers = new Layers();
 		this.visible = true;
 
 		// 设置是否投射和接收阴影
