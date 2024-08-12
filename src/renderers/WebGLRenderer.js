@@ -1289,8 +1289,7 @@ class WebGLRenderer {
 
 			}
 
-			//
-
+			//渲染次数
 			this.info.render.frame ++;
 
 			if ( _clippingEnabled === true ) clipping.beginShadows();

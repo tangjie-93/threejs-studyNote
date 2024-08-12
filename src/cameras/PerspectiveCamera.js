@@ -10,27 +10,49 @@ const _maxTarget = /*@__PURE__*/ new Vector2();
 
 class PerspectiveCamera extends Camera {
 
+	/**
+	 * 构造函数，创建一个透视相机对象
+	 *
+	 * @param fov 视野角度，默认为50
+	 * @param aspect 纵横比，默认为1
+	 * @param near 近裁剪面距离，默认为0.1
+	 * @param far 远裁剪面距离，默认为2000
+	 */
 	constructor( fov = 50, aspect = 1, near = 0.1, far = 2000 ) {
 
 		super();
 
+		// 标记为透视相机
 		this.isPerspectiveCamera = true;
 
+		// 相机类型
 		this.type = 'PerspectiveCamera';
 
+		// 视野角度
 		this.fov = fov;
+		// 缩放比例
 		this.zoom = 1;
 
+		// 近平面距离
 		this.near = near;
+		// 远平面距离
 		this.far = far;
+		// 焦距
 		this.focus = 10;
 
+		// 宽高比
 		this.aspect = aspect;
+		// 视图
 		this.view = null;
 
-		this.filmGauge = 35;	// width of the film (default in millimeters)
-		this.filmOffset = 0;	// horizontal film offset (same unit as gauge)
+		// 胶片宽度（默认为毫米）
+		// width of the film (default in millimeters)
+		this.filmGauge = 35;
+		// 胶片水平偏移量（与胶片宽度相同的单位）
+		// horizontal film offset (same unit as gauge)
+		this.filmOffset = 0;
 
+		// 更新投影矩阵
 		this.updateProjectionMatrix();
 
 	}
@@ -211,32 +233,63 @@ class PerspectiveCamera extends Camera {
 
 	}
 
+	/**
+	 * 更新投影矩阵
+	 *
+	 * @returns 无返回值
+	 */
 	updateProjectionMatrix() {
 
+		// 获取近平面距离
 		const near = this.near;
+
+		// 计算顶部边界
 		let top = near * Math.tan( MathUtils.DEG2RAD * 0.5 * this.fov ) / this.zoom;
+
+		// 计算高度
 		let height = 2 * top;
+
+		// 计算宽度
 		let width = this.aspect * height;
+
+		// 计算左边边界
 		let left = - 0.5 * width;
+
+		// 获取视图对象
 		const view = this.view;
 
+		// 如果视图对象不为空且启用
 		if ( this.view !== null && this.view.enabled ) {
 
+			// 获取视图的完整宽度和高度
 			const fullWidth = view.fullWidth,
 				fullHeight = view.fullHeight;
 
+			// 根据视图的偏移量调整左边边界
 			left += view.offsetX * width / fullWidth;
+
+			// 根据视图的偏移量调整顶部边界
 			top -= view.offsetY * height / fullHeight;
+
+			// 根据视图的尺寸调整宽度
 			width *= view.width / fullWidth;
+
+			// 根据视图的尺寸调整高度
 			height *= view.height / fullHeight;
 
 		}
 
+		// 获取镜头偏移量
 		const skew = this.filmOffset;
+
+		// 如果镜头偏移量不为0，根据偏移量和胶片宽度调整左边边界
 		if ( skew !== 0 ) left += near * skew / this.getFilmWidth();
 
+		// 设置透视投影矩阵
 		this.projectionMatrix.makePerspective( left, left + width, top, top - height, near, this.far, this.coordinateSystem );
 
+		// 复制透视投影矩阵并求逆 得到相机空间中的坐标矩阵
+		// 对透视投影矩阵求逆得到的是一个矩阵，它可以将标准化设备坐标（或裁剪空间）中的坐标转换回视图空间（或相机空间）中的坐标
 		this.projectionMatrixInverse.copy( this.projectionMatrix ).invert();
 
 	}
