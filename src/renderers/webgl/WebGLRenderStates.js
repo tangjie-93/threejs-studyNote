@@ -162,17 +162,3 @@ function WebGLRenderStates( extensions ) {
 
 
 export { WebGLRenderStates };
-
-		renderStates = new WeakMap();
-
-	}
-
-	return {
-		get: get,
-		dispose: dispose
-	};
-
-}
-
-
-export { WebGLRenderStates };
