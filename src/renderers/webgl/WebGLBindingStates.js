@@ -22,54 +22,36 @@ function WebGLBindingStates(gl, attributes) {
 	 * @returns 无返回值
 	 */
 	function setup(object, material, program, geometry, index) {
-
 		// 初始化updateBuffers为false
 		let updateBuffers = false;
-
 		// 获取当前绑定状态
 		const state = getBindingState(geometry, program, material);
-
 		// 如果当前状态不等于获取到的状态
 		if (currentState !== state) {
-
 			// 更新当前状态
 			currentState = state;
 			// 绑定顶点数组对象
 			bindVertexArrayObject(currentState.object);
-
 		}
-
 		// 判断是否需要更新缓冲区
 		updateBuffers = needsUpdate(object, geometry, program, index);
-
 		// 如果需要更新缓冲区，则保存缓存
 		if (updateBuffers) saveCache(object, geometry, program, index);
-
 		// 如果index不为null
 		if (index !== null) {
-
 			// 更新属性索引
 			attributes.update(index, gl.ELEMENT_ARRAY_BUFFER);
-
 		}
-
 		// 如果需要更新缓冲区或者强制更新
 		if (updateBuffers || forceUpdate) {
-
 			// 取消强制更新标记
 			forceUpdate = false;
-
 			// 设置顶点属性
 			setupVertexAttributes(object, material, program, geometry);
-
 			if (index !== null) {
-
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, attributes.get(index).buffer);
-
 			}
-
 		}
-
 	}
 
 	/**
@@ -102,9 +84,7 @@ function WebGLBindingStates(gl, attributes) {
 	 * @returns 顶点数组对象删除状态
 	 */
 	function deleteVertexArrayObject(vao) {
-
 		return gl.deleteVertexArray(vao);
-
 	}
 
 	/**
@@ -116,49 +96,34 @@ function WebGLBindingStates(gl, attributes) {
 	 * @returns 绑定状态
 	 */
 	function getBindingState(geometry, program, material) {
-
 		// 判断是否为线框模式
 		const wireframe = (material.wireframe === true);
-
 		// 获取根据 geometry 的 id 对应的 programMap
 		let programMap = bindingStates[geometry.id];
-
 		if (programMap === undefined) {
-
 			// 若不存在，则创建一个新的 programMap
 			programMap = {};
 			// 将新创建的 programMap 存入 bindingStates 中，以 geometry 的 id 为键
 			bindingStates[geometry.id] = programMap;
-
 		}
-
 		// 获取根据 program 的 id 对应的 stateMap
 		let stateMap = programMap[program.id];
-
 		if (stateMap === undefined) {
-
 			// 若不存在，则创建一个新的 stateMap
 			stateMap = {};
 			// 将新创建的 stateMap 存入 programMap 中，以 program 的 id 为键
 			programMap[program.id] = stateMap;
-
 		}
-
 		// 根据 wireframe 的值获取对应的 state
 		let state = stateMap[wireframe];
-
 		if (state === undefined) {
-
 			// 若不存在，则创建一个新的 state
 			state = createBindingState(createVertexArrayObject());
 			// 将新创建的 state 存入 stateMap 中，以 wireframe 的值为键
 			stateMap[wireframe] = state;
-
 		}
-
 		// 返回 state
 		return state;
-
 	}
 
 	/**
@@ -177,35 +142,42 @@ function WebGLBindingStates(gl, attributes) {
 	 * - index: 索引对象
 	 */
 	function createBindingState(vao) {
-
+		// 初始化新的属性数组
 		const newAttributes = [];
+		// 初始化已启用的属性数组
 		const enabledAttributes = [];
+		// 初始化属性除数数组
 		const attributeDivisors = [];
-
+		// 遍历所有可能的顶点属性
 		for (let i = 0; i < maxVertexAttributes; i++) {
-
+			// 初始化新的属性值为0
 			newAttributes[i] = 0;
+			// 初始化已启用的属性值为0
 			enabledAttributes[i] = 0;
+			// 初始化属性除数值为0
 			attributeDivisors[i] = 0;
-
 		}
-
 		return {
-
-			// for backward compatibility on non-VAO support browser
+			// 兼容不支持VAO的浏览器的旧版本
+			// 用于向后兼容不支持VAO的浏览器
 			geometry: null,
+			// 程序对象
 			program: null,
+			// 是否使用线框模式
 			wireframe: false,
-
+			// 新的属性数组
 			newAttributes: newAttributes,
+			// 已启用的属性数组
 			enabledAttributes: enabledAttributes,
+			// 属性除数数组
 			attributeDivisors: attributeDivisors,
+			// 顶点数组对象
 			object: vao,
+			// 属性对象
 			attributes: {},
+			// 索引对象
 			index: null
-
 		};
-
 	}
 
 	/**
@@ -449,16 +421,12 @@ function WebGLBindingStates(gl, attributes) {
 	 * @param integer 是否使用 gl.vertexAttribIPointer 替代 gl.vertexAttribPointer
 	 */
 	function vertexAttribPointer(index, size, type, normalized, stride, offset, integer) {
-
 		if (integer === true) {
 			gl.vertexAttribIPointer(index, size, type, stride, offset);
-
 		} else {
 			// gl.vertexAttribPointer(aposLocation,2,gl.FLOAT,false,0,0);
 			gl.vertexAttribPointer(index, size, type, normalized, stride, offset);
-
 		}
-
 	}
 
 	/**
@@ -647,33 +615,29 @@ function WebGLBindingStates(gl, attributes) {
 	 * @returns 无返回值
 	 */
 	function dispose() {
-
+		// 重置函数
 		reset();
-
+		// 遍历 bindingStates 对象
 		for (const geometryId in bindingStates) {
-
+			// 获取当前 geometryId 对应的 programMap 对象
 			const programMap = bindingStates[geometryId];
-
+			// 遍历 programMap 对象
 			for (const programId in programMap) {
-
+				// 获取当前 programId 对应的 stateMap 对象
 				const stateMap = programMap[programId];
-
+				// 遍历 stateMap 对象
 				for (const wireframe in stateMap) {
-
+					// 删除 stateMap[wireframe].object 对应的顶点数组对象
 					deleteVertexArrayObject(stateMap[wireframe].object);
-
+					// 删除 stateMap[wireframe] 属性
 					delete stateMap[wireframe];
-
 				}
-
+				// 删除 programMap[programId] 属性
 				delete programMap[programId];
-
 			}
-
+			// 删除 bindingStates[geometryId] 属性
 			delete bindingStates[geometryId];
-
 		}
-
 	}
 
 	/**
@@ -683,29 +647,26 @@ function WebGLBindingStates(gl, attributes) {
 	 * @returns 无返回值
 	 */
 	function releaseStatesOfGeometry(geometry) {
-
+		// 如果当前几何体的绑定状态不存在，则直接返回
 		if (bindingStates[geometry.id] === undefined) return;
-
+		// 获取当前几何体的程序映射
 		const programMap = bindingStates[geometry.id];
-
+		// 遍历程序映射中的每个程序ID
 		for (const programId in programMap) {
-
+			// 获取当前程序ID的状态映射
 			const stateMap = programMap[programId];
-
+			// 遍历状态映射中的每个线框状态
 			for (const wireframe in stateMap) {
-
+				// 删除顶点数组对象
 				deleteVertexArrayObject(stateMap[wireframe].object);
-
+				// 删除线框状态
 				delete stateMap[wireframe];
-
 			}
-
+			// 删除程序ID的状态映射
 			delete programMap[programId];
-
 		}
-
+		// 删除几何体的绑定状态
 		delete bindingStates[geometry.id];
-
 	}
 
 	/**
@@ -715,27 +676,24 @@ function WebGLBindingStates(gl, attributes) {
 	 * @returns 无返回值
 	 */
 	function releaseStatesOfProgram(program) {
-
+		// 遍历 bindingStates 对象
 		for (const geometryId in bindingStates) {
-
+			// 获取当前 geometryId 对应的 programMap
 			const programMap = bindingStates[geometryId];
-
+			// 如果 programMap 中不存在当前 program 的 id，则跳过当前循环
 			if (programMap[program.id] === undefined) continue;
-
+			// 获取当前 program 的 stateMap
 			const stateMap = programMap[program.id];
-
+			// 遍历 stateMap 对象
 			for (const wireframe in stateMap) {
-
+				// 删除当前 wireframe 对应的顶点数组对象
 				deleteVertexArrayObject(stateMap[wireframe].object);
-
+				// 删除当前 wireframe
 				delete stateMap[wireframe];
-
 			}
-
+			// 删除当前 program 的信息
 			delete programMap[program.id];
-
 		}
-
 	}
 
 	/**
@@ -744,30 +702,27 @@ function WebGLBindingStates(gl, attributes) {
 	 * @returns 无返回值
 	 */
 	function reset() {
-
+		// 重置默认状态
 		resetDefaultState();
+		// 强制更新标志设为 true
 		forceUpdate = true;
-
+		// 如果当前状态等于默认状态，则直接返回
 		if (currentState === defaultState) return;
-
+		// 将当前状态设为默认状态
 		currentState = defaultState;
+		// 绑定顶点数组对象到当前状态的物体上
 		bindVertexArrayObject(currentState.object);
-
 	}
-
 	// for backward-compatibility
-
 	/**
 	 * 重置默认状态
 	 *
 	 * @returns 无返回值
 	 */
 	function resetDefaultState() {
-
 		defaultState.geometry = null;
 		defaultState.program = null;
 		defaultState.wireframe = false;
-
 	}
 
 	return {
