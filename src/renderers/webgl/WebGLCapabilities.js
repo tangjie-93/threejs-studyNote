@@ -10,14 +10,6 @@ import { FloatType, HalfFloatType, RGBAFormat, UnsignedByteType } from '../../co
  * @returns {object} - 包含了 WebGL 上下文能力的对象。
  */
 function WebGLCapabilities( gl, extensions, parameters, utils ) {
-
-	let maxAnisotropy;
-
-	/**
-	 * 获取最大各向异性过滤值
-	 *
-	 * @returns 返回最大各向异性过滤值，如果不支持则返回0
-	 */
 	/**
 	 * 获取最大各向异性过滤值
 	 *
@@ -75,11 +67,8 @@ function WebGLCapabilities( gl, extensions, parameters, utils ) {
 			textureType !== FloatType && ! halfFloatSupportedByExt ) {
 
 			return false;
-
 		}
-
 		return true;
-
 	}
 
 	/**
@@ -129,23 +118,27 @@ function WebGLCapabilities( gl, extensions, parameters, utils ) {
 	}
 
 	const logarithmicDepthBuffer = parameters.logarithmicDepthBuffer === true;
-
+	//  查询片段着色器中可以同时访问的最大纹理单元数量
 	const maxTextures = gl.getParameter( gl.MAX_TEXTURE_IMAGE_UNITS );
+	// 查询顶点着色器中可以同时访问的最大纹理单元数量
 	const maxVertexTextures = gl.getParameter( gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS );
+	// 查询 WebGL 支持的最大二维纹理的宽度和高度。这个值通常是 2 的幂，例如 2048 或 4096，它定义了可以创建的最大纹理的尺寸。
 	const maxTextureSize = gl.getParameter( gl.MAX_TEXTURE_SIZE );
+	// 查询 WebGL 支持的最大立方体贴图纹理的尺寸
 	const maxCubemapSize = gl.getParameter( gl.MAX_CUBE_MAP_TEXTURE_SIZE );
-
+	//  查询 WebGL 顶点着色器可以使用的最大顶点属性数量
 	const maxAttributes = gl.getParameter( gl.MAX_VERTEX_ATTRIBS );
+	//  查询顶点着色器中可以使用的最大 uniform 变量的数量
 	const maxVertexUniforms = gl.getParameter( gl.MAX_VERTEX_UNIFORM_VECTORS );
+	// 查询顶点着色器和片段着色器之间可以传递的最大 varying 变量数量
 	const maxVaryings = gl.getParameter( gl.MAX_VARYING_VECTORS );
+	// 查询片段着色器中可以使用的最大 uniform 变量的数量
 	const maxFragmentUniforms = gl.getParameter( gl.MAX_FRAGMENT_UNIFORM_VECTORS );
-
 	const vertexTextures = maxVertexTextures > 0;
-
+	// 用于查询 WebGL 渲染上下文中多重采样（Multisample Anti-Aliasing, MSAA）的最大样本数量
 	const maxSamples = gl.getParameter( gl.MAX_SAMPLES );
 
 	return {
-
 		isWebGL2: true, // keeping this for backwards compatibility
 
 		getMaxAnisotropy: getMaxAnisotropy,

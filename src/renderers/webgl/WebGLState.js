@@ -2,73 +2,49 @@ import { NotEqualDepth, GreaterDepth, GreaterEqualDepth, EqualDepth, LessEqualDe
 import { Color } from '../../math/Color.js';
 import { Vector4 } from '../../math/Vector4.js';
 
-function WebGLState( gl ) {
+function WebGLState(gl) {
 
 	/**
 	 * ColorBuffer类用于管理WebGL中的颜色缓冲区设置，包括颜色掩码、清除颜色以及锁定状态。
 	 * @returns {Object} 返回一个包含颜色缓冲区操作方法的对象。
 	 */
 	function ColorBuffer() {
-	
 		let locked = false; // 锁定状态，防止在渲染过程中修改颜色缓冲区设置
-	
 		const color = new Vector4(); // 用于存储当前设置的颜色值
 		let currentColorMask = null; // 当前设置的颜色掩码
 		const currentColorClear = new Vector4(0, 0, 0, 0); // 当前设置的清除颜色
-	
 		return {
-	
 			/**
 			 * 设置颜色掩码。
 			 * @param {boolean} colorMask - 一个布尔值，用于控制RGBA四个通道是否写入颜色缓冲区。
 			 */
-			setMask: function(colorMask) {
-	
+			setMask: function (colorMask) {
 				if (currentColorMask !== colorMask && !locked) {
-	
-					gl.colorMask( colorMask, colorMask, colorMask, colorMask );
+					gl.colorMask(colorMask, colorMask, colorMask, colorMask);
 					currentColorMask = colorMask;
-
 				}
-
 			},
-
-			setLocked: function ( lock ) {
-
+			setLocked: function (lock) {
 				locked = lock;
-
 			},
 			// 设置颜色缓冲区清除值
-			setClear: function ( r, g, b, a, premultipliedAlpha ) {
-
-				if ( premultipliedAlpha === true ) {
-
+			setClear: function (r, g, b, a, premultipliedAlpha) {
+				if (premultipliedAlpha === true) {
 					r *= a; g *= a; b *= a;
-
 				}
-
-				color.set( r, g, b, a );
-
-				if ( currentColorClear.equals( color ) === false ) {
-
-					gl.clearColor( r, g, b, a );
-					currentColorClear.copy( color );
-
+				color.set(r, g, b, a);
+				if (currentColorClear.equals(color) === false) {
+					gl.clearColor(r, g, b, a);
+					currentColorClear.copy(color);
 				}
-
 			},
 			// 重置数据
 			reset: function () {
-
 				locked = false;
-
 				currentColorMask = null;
-				currentColorClear.set( - 1, 0, 0, 0 ); // set to invalid state
-
+				currentColorClear.set(- 1, 0, 0, 0); // set to invalid state
 			}
-
 		};
-
 	}
 
 	/**
@@ -91,29 +67,29 @@ function WebGLState( gl ) {
 		return {
 
 			// 设置是否启用深度测试
-			setTest: function ( depthTest ) {
+			setTest: function (depthTest) {
 
-				if ( depthTest ) {
+				if (depthTest) {
 
 					// 如果启用深度测试
-					enable( gl.DEPTH_TEST );
+					enable(gl.DEPTH_TEST);
 
 				} else {
 
 					// 如果禁用深度测试
-					disable( gl.DEPTH_TEST );
+					disable(gl.DEPTH_TEST);
 
 				}
 
 			},
 
 			// 设置深度缓冲区掩码
-			setMask: function ( depthMask ) {
+			setMask: function (depthMask) {
 
 				// 如果当前掩码与传入的不同且深度缓冲区未锁定，则更新掩码
-				if ( currentDepthMask !== depthMask && ! locked ) {
+				if (currentDepthMask !== depthMask && !locked) {
 					// 设置深度缓冲区的写入启用标志
-					gl.depthMask( depthMask ); // 设置 WebGL 深度缓冲区掩码
+					gl.depthMask(depthMask); // 设置 WebGL 深度缓冲区掩码
 					currentDepthMask = depthMask; // 更新当前掩码
 
 				}
@@ -122,28 +98,28 @@ function WebGLState( gl ) {
 
 			// 设置深度比较函数
 			// 用于比较每个传入像素深度值与深度缓冲区中深度值的函数
-			setFunc: function ( depthFunc ) {
+			setFunc: function (depthFunc) {
 
 				// 如果当前比较函数与传入的不同，则根据传入的比较函数更新 WebGL 的深度比较设置
-				if ( currentDepthFunc !== depthFunc ) {
+				if (currentDepthFunc !== depthFunc) {
 
-					switch ( depthFunc ) {
+					switch (depthFunc) {
 
 						case NeverDepth: // 假设 NeverDepth 是某种预定义的表示“从不”的比较方式
 
-							gl.depthFunc( gl.NEVER );
+							gl.depthFunc(gl.NEVER);
 							break;
 
 						case AlwaysDepth: // 假设 AlwaysDepth 是某种预定义的表示“总是”的比较方式
 
-							gl.depthFunc( gl.ALWAYS );
+							gl.depthFunc(gl.ALWAYS);
 							break;
 
 						// 其他比较方式类似，这里省略了具体的枚举值比较和设置
 
 						default:
 
-							gl.depthFunc( gl.LEQUAL ); // 默认使用“小于等于”的比较方式
+							gl.depthFunc(gl.LEQUAL); // 默认使用“小于等于”的比较方式
 
 					}
 
@@ -154,19 +130,19 @@ function WebGLState( gl ) {
 			},
 
 			// 设置深度缓冲区是否锁定
-			setLocked: function ( lock ) {
+			setLocked: function (lock) {
 
 				locked = lock; // 更新锁定状态
 
 			},
 
 			// 设置深度清除值
-			setClear: function ( depth ) {
+			setClear: function (depth) {
 
 				// 如果当前清除值与传入的不同，则更新 WebGL 的深度清除值
-				if ( currentDepthClear !== depth ) {
+				if (currentDepthClear !== depth) {
 
-					gl.clearDepth( depth ); // 设置 WebGL 深度清除值
+					gl.clearDepth(depth); // 设置 WebGL 深度清除值
 					currentDepthClear = depth; // 更新当前清除值
 
 				}
@@ -206,17 +182,17 @@ function WebGLState( gl ) {
 
 		return {
 			// 设置模板缓冲区是否启用
-			setTest: function ( stencilTest ) {
+			setTest: function (stencilTest) {
 
-				if ( ! locked ) {
+				if (!locked) {
 
-					if ( stencilTest ) {
+					if (stencilTest) {
 
-						enable( gl.STENCIL_TEST );
+						enable(gl.STENCIL_TEST);
 
 					} else {
 
-						disable( gl.STENCIL_TEST );
+						disable(gl.STENCIL_TEST);
 
 					}
 
@@ -224,24 +200,25 @@ function WebGLState( gl ) {
 
 			},
 
-			setMask: function ( stencilMask ) {
+			setMask: function (stencilMask) {
 
-				if ( currentStencilMask !== stencilMask && ! locked ) {
+				if (currentStencilMask !== stencilMask && !locked) {
 
-					gl.stencilMask( stencilMask );
+					gl.stencilMask(stencilMask);
 					currentStencilMask = stencilMask;
 
 				}
 
 			},
 			// 设置模板测试的函数
-			setFunc: function ( stencilFunc, stencilRef, stencilMask ) {
+			// 设置模板测试函数、引用值和掩码
+			setFunc: function (stencilFunc, stencilRef, stencilMask) {
 
-				if ( currentStencilFunc !== stencilFunc ||
-				     currentStencilRef !== stencilRef ||
-				     currentStencilFuncMask !== stencilMask ) {
+				if (currentStencilFunc !== stencilFunc ||
+					currentStencilRef !== stencilRef ||
+					currentStencilFuncMask !== stencilMask) {
 
-					gl.stencilFunc( stencilFunc, stencilRef, stencilMask );
+					gl.stencilFunc(stencilFunc, stencilRef, stencilMask);
 
 					currentStencilFunc = stencilFunc;
 					currentStencilRef = stencilRef;
@@ -251,13 +228,13 @@ function WebGLState( gl ) {
 
 			},
 			//  配置模板测试失败、深度测试失败和深度测试通过时的操作
-			setOp: function ( stencilFail, stencilZFail, stencilZPass ) {
+			setOp: function (stencilFail, stencilZFail, stencilZPass) {
 
-				if ( currentStencilFail !== stencilFail ||
-				     currentStencilZFail !== stencilZFail ||
-				     currentStencilZPass !== stencilZPass ) {
+				if (currentStencilFail !== stencilFail ||
+					currentStencilZFail !== stencilZFail ||
+					currentStencilZPass !== stencilZPass) {
 
-					gl.stencilOp( stencilFail, stencilZFail, stencilZPass );
+					gl.stencilOp(stencilFail, stencilZFail, stencilZPass);
 
 					currentStencilFail = stencilFail;
 					currentStencilZFail = stencilZFail;
@@ -267,17 +244,17 @@ function WebGLState( gl ) {
 
 			},
 
-			setLocked: function ( lock ) {
+			setLocked: function (lock) {
 
 				locked = lock;
 
 			},
 
-			setClear: function ( stencil ) {
+			setClear: function (stencil) {
 
-				if ( currentStencilClear !== stencil ) {
+				if (currentStencilClear !== stencil) {
 
-					gl.clearStencil( stencil );
+					gl.clearStencil(stencil);
 					currentStencilClear = stencil;
 
 				}
@@ -327,7 +304,7 @@ function WebGLState( gl ) {
 	let currentBlendEquationAlpha = null;
 	let currentBlendSrcAlpha = null;
 	let currentBlendDstAlpha = null;
-	let currentBlendColor = new Color( 0, 0, 0 );
+	let currentBlendColor = new Color(0, 0, 0);
 	let currentBlendAlpha = 0;
 	let currentPremultipledAlpha = false;
 
@@ -339,80 +316,78 @@ function WebGLState( gl ) {
 	let currentPolygonOffsetFactor = null;
 	let currentPolygonOffsetUnits = null;
 
-	const maxTextures = gl.getParameter( gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS );
+	const maxTextures = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
 
 	let lineWidthAvailable = false;
 	let version = 0;
-	const glVersion = gl.getParameter( gl.VERSION );
+	const glVersion = gl.getParameter(gl.VERSION);
 
-	if ( glVersion.indexOf( 'WebGL' ) !== - 1 ) {
+	if (glVersion.indexOf('WebGL') !== - 1) {
 
-		version = parseFloat( /^WebGL (\d)/.exec( glVersion )[ 1 ] );
-		lineWidthAvailable = ( version >= 1.0 );
+		version = parseFloat(/^WebGL (\d)/.exec(glVersion)[1]);
+		lineWidthAvailable = (version >= 1.0);
 
-	} else if ( glVersion.indexOf( 'OpenGL ES' ) !== - 1 ) {
+	} else if (glVersion.indexOf('OpenGL ES') !== - 1) {
 
-		version = parseFloat( /^OpenGL ES (\d)/.exec( glVersion )[ 1 ] );
-		lineWidthAvailable = ( version >= 2.0 );
+		version = parseFloat(/^OpenGL ES (\d)/.exec(glVersion)[1]);
+		lineWidthAvailable = (version >= 2.0);
 
 	}
 
 	let currentTextureSlot = null;
 	let currentBoundTextures = {};
 
-	const scissorParam = gl.getParameter( gl.SCISSOR_BOX );
-	const viewportParam = gl.getParameter( gl.VIEWPORT );
+	const scissorParam = gl.getParameter(gl.SCISSOR_BOX);
+	const viewportParam = gl.getParameter(gl.VIEWPORT);
 
-	const currentScissor = new Vector4().fromArray( scissorParam );
-	const currentViewport = new Vector4().fromArray( viewportParam );
+	const currentScissor = new Vector4().fromArray(scissorParam);
+	const currentViewport = new Vector4().fromArray(viewportParam);
 
-	function createTexture( type, target, count, dimensions ) {
-
-		const data = new Uint8Array( 4 ); // 4 is required to match default unpack alignment of 4.
+	/**
+	 * 创建一个纹理
+	 *
+	 * @param type 纹理类型
+	 * @param target 目标纹理类型
+	 * @param count 纹理数量
+	 * @param dimensions 纹理维度
+	 * @returns 返回创建的纹理
+	 */
+	function createTexture(type, target, count, dimensions) {
+		const data = new Uint8Array(4); // 4 is required to match default unpack alignment of 4.
 		const texture = gl.createTexture();
-
-		gl.bindTexture( type, texture );
-		gl.texParameteri( type, gl.TEXTURE_MIN_FILTER, gl.NEAREST );
-		gl.texParameteri( type, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
-
-		for ( let i = 0; i < count; i ++ ) {
-
-			if ( type === gl.TEXTURE_3D || type === gl.TEXTURE_2D_ARRAY ) {
-
-				gl.texImage3D( target, 0, gl.RGBA, 1, 1, dimensions, 0, gl.RGBA, gl.UNSIGNED_BYTE, data );
-
+		gl.bindTexture(type, texture);
+		gl.texParameteri(type, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(type, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		for (let i = 0; i < count; i++) {
+			if (type === gl.TEXTURE_3D || type === gl.TEXTURE_2D_ARRAY) {
+				gl.texImage3D(target, 0, gl.RGBA, 1, 1, dimensions, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
 			} else {
-
-				gl.texImage2D( target + i, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, data );
-
+				gl.texImage2D(target + i, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
 			}
-
 		}
-
 		return texture;
-
 	}
 
 	const emptyTextures = {};
-	emptyTextures[ gl.TEXTURE_2D ] = createTexture( gl.TEXTURE_2D, gl.TEXTURE_2D, 1 );
-	emptyTextures[ gl.TEXTURE_CUBE_MAP ] = createTexture( gl.TEXTURE_CUBE_MAP, gl.TEXTURE_CUBE_MAP_POSITIVE_X, 6 );
-	emptyTextures[ gl.TEXTURE_2D_ARRAY ] = createTexture( gl.TEXTURE_2D_ARRAY, gl.TEXTURE_2D_ARRAY, 1, 1 );
-	emptyTextures[ gl.TEXTURE_3D ] = createTexture( gl.TEXTURE_3D, gl.TEXTURE_3D, 1, 1 );
+	emptyTextures[gl.TEXTURE_2D] = createTexture(gl.TEXTURE_2D, gl.TEXTURE_2D, 1);
+	emptyTextures[gl.TEXTURE_CUBE_MAP] = createTexture(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_CUBE_MAP_POSITIVE_X, 6);
+	emptyTextures[gl.TEXTURE_2D_ARRAY] = createTexture(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_2D_ARRAY, 1, 1);
+	emptyTextures[gl.TEXTURE_3D] = createTexture(gl.TEXTURE_3D, gl.TEXTURE_3D, 1, 1);
 
 	// init
 	// 初始化缓冲区状态
-	colorBuffer.setClear( 0, 0, 0, 1 );
-	depthBuffer.setClear( 1 );
-	stencilBuffer.setClear( 0 );
+	colorBuffer.setClear(0, 0, 0, 1);
+	depthBuffer.setClear(1);
+	stencilBuffer.setClear(0);
 	// 开启深度缓冲
-	enable( gl.DEPTH_TEST );
-	depthBuffer.setFunc( LessEqualDepth );
+	enable(gl.DEPTH_TEST);
+	depthBuffer.setFunc(LessEqualDepth);
 
-	setFlipSided( false );
-	setCullFace( CullFaceBack );
-	enable( gl.CULL_FACE );
+	setFlipSided(false);
+	setCullFace(CullFaceBack);
+	enable(gl.CULL_FACE);
 
-	setBlending( NoBlending );
+	setBlending(NoBlending);
 
 	/**
 	 * 启用指定的WebGL功能
@@ -421,12 +396,12 @@ function WebGLState( gl ) {
 	 * @description 如果指定的WebGL功能尚未启用，则启用它，并在enabledCapabilities对象中记录其状态为true。
 	 *              enabledCapabilities对象用于跟踪哪些WebGL功能已被启用。
 	 */
-	function enable( id ) {
+	function enable(id) {
 
-		if ( enabledCapabilities[ id ] !== true ) {
+		if (enabledCapabilities[id] !== true) {
 
-			gl.enable( id );
-			enabledCapabilities[ id ] = true;
+			gl.enable(id);
+			enabledCapabilities[id] = true;
 
 		}
 
@@ -440,12 +415,12 @@ function WebGLState( gl ) {
 	 * 则会调用 gl.disable(id) 来禁用它，并将 enabledCapabilities[id] 设置为 false，以记录该功能已被禁用。
 	 * 如果功能已经禁用，则不会执行任何操作。
 	 */
-	function disable( id ) {
+	function disable(id) {
 
-		if ( enabledCapabilities[ id ] !== false ) {
+		if (enabledCapabilities[id] !== false) {
 
-			gl.disable( id );
-			enabledCapabilities[ id ] = false;
+			gl.disable(id);
+			enabledCapabilities[id] = false;
 
 		}
 
@@ -460,25 +435,25 @@ function WebGLState( gl ) {
 	 * @param {WebGLFramebuffer} framebuffer - 要绑定的帧缓冲区对象。
 	 * @returns {boolean} 如果成功绑定了新的帧缓冲区，则返回true；如果已绑定相同的帧缓冲区，则返回false。
 	 */
-	function bindFramebuffer( target, framebuffer ) {
+	function bindFramebuffer(target, framebuffer) {
 
-		if ( currentBoundFramebuffers[ target ] !== framebuffer ) {
+		if (currentBoundFramebuffers[target] !== framebuffer) {
 
-			gl.bindFramebuffer( target, framebuffer );
+			gl.bindFramebuffer(target, framebuffer);
 
-			currentBoundFramebuffers[ target ] = framebuffer;
+			currentBoundFramebuffers[target] = framebuffer;
 
 			// gl.DRAW_FRAMEBUFFER is equivalent to gl.FRAMEBUFFER
 
-			if ( target === gl.DRAW_FRAMEBUFFER ) {
+			if (target === gl.DRAW_FRAMEBUFFER) {
 
-				currentBoundFramebuffers[ gl.FRAMEBUFFER ] = framebuffer;
+				currentBoundFramebuffers[gl.FRAMEBUFFER] = framebuffer;
 
 			}
 
-			if ( target === gl.FRAMEBUFFER ) {
+			if (target === gl.FRAMEBUFFER) {
 
-				currentBoundFramebuffers[ gl.DRAW_FRAMEBUFFER ] = framebuffer;
+				currentBoundFramebuffers[gl.DRAW_FRAMEBUFFER] = framebuffer;
 
 			}
 
@@ -502,54 +477,69 @@ function WebGLState( gl ) {
 	 * 如果未提供renderTarget，则默认使用屏幕缓冲区（gl.BACK）。
 	 * 如果配置发生变化，会调用gl.drawBuffers来更新WebGL的绘制缓冲区设置。
 	 */
-	function drawBuffers( renderTarget, framebuffer ) {
+	function drawBuffers(renderTarget, framebuffer) {
 
+		// 默认绘制缓冲区
 		let drawBuffers = defaultDrawbuffers;
 
+		// 是否需要更新绘制缓冲区
 		let needsUpdate = false;
 
-		if ( renderTarget ) {
+		if (renderTarget) {
 
-			drawBuffers = currentDrawbuffers.get( framebuffer );
+			// 获取当前帧缓冲对应的绘制缓冲区
+			drawBuffers = currentDrawbuffers.get(framebuffer);
 
-			if ( drawBuffers === undefined ) {
+			if (drawBuffers === undefined) {
 
+				// 初始化绘制缓冲区数组
 				drawBuffers = [];
-				currentDrawbuffers.set( framebuffer, drawBuffers );
+				// 设置当前帧缓冲对应的绘制缓冲区
+				currentDrawbuffers.set(framebuffer, drawBuffers);
 
 			}
 
+			// 获取渲染目标的纹理数组
 			const textures = renderTarget.textures;
 
-			if ( drawBuffers.length !== textures.length || drawBuffers[ 0 ] !== gl.COLOR_ATTACHMENT0 ) {
+			// 如果绘制缓冲区长度与纹理数组长度不一致，或者绘制缓冲区的第一个元素不是gl.COLOR_ATTACHMENT0
+			if (drawBuffers.length !== textures.length || drawBuffers[0] !== gl.COLOR_ATTACHMENT0) {
 
-				for ( let i = 0, il = textures.length; i < il; i ++ ) {
+				// 遍历纹理数组，设置绘制缓冲区
+				for (let i = 0, il = textures.length; i < il; i++) {
 
-					drawBuffers[ i ] = gl.COLOR_ATTACHMENT0 + i;
+					drawBuffers[i] = gl.COLOR_ATTACHMENT0 + i;
 
 				}
 
+				// 设置绘制缓冲区长度为纹理数组长度
 				drawBuffers.length = textures.length;
 
+				// 标记需要更新绘制缓冲区
 				needsUpdate = true;
 
 			}
 
 		} else {
 
-			if ( drawBuffers[ 0 ] !== gl.BACK ) {
+			// 如果绘制缓冲区的第一个元素不是gl.BACK
+			if (drawBuffers[0] !== gl.BACK) {
 
-				drawBuffers[ 0 ] = gl.BACK;
+				// 设置绘制缓冲区的第一个元素为gl.BACK
+				drawBuffers[0] = gl.BACK;
 
+				// 标记需要更新绘制缓冲区
 				needsUpdate = true;
 
 			}
 
 		}
 
-		if ( needsUpdate ) {
+		// 如果需要更新绘制缓冲区
+		if (needsUpdate) {
 
-			gl.drawBuffers( drawBuffers );
+			// 更新绘制缓冲区
+			gl.drawBuffers(drawBuffers);
 
 		}
 
@@ -566,11 +556,11 @@ function WebGLState( gl ) {
 	 * 并更新当前程序的状态。如果成功切换了程序，则返回true；
 	 * 如果程序已经是当前程序，则不会进行任何操作，并返回false。
 	 */
-	function useProgram( program ) {
+	function useProgram(program) {
 
-		if ( currentProgram !== program ) {
+		if (currentProgram !== program) {
 
-			gl.useProgram( program );
+			gl.useProgram(program);
 
 			currentProgram = program;
 
@@ -583,30 +573,30 @@ function WebGLState( gl ) {
 	}
 
 	const equationToGL = {
-		[ AddEquation ]: gl.FUNC_ADD,
-		[ SubtractEquation ]: gl.FUNC_SUBTRACT,
-		[ ReverseSubtractEquation ]: gl.FUNC_REVERSE_SUBTRACT
+		[AddEquation]: gl.FUNC_ADD,
+		[SubtractEquation]: gl.FUNC_SUBTRACT,
+		[ReverseSubtractEquation]: gl.FUNC_REVERSE_SUBTRACT
 	};
 
-	equationToGL[ MinEquation ] = gl.MIN;
-	equationToGL[ MaxEquation ] = gl.MAX;
+	equationToGL[MinEquation] = gl.MIN;
+	equationToGL[MaxEquation] = gl.MAX;
 
 	const factorToGL = {
-		[ ZeroFactor ]: gl.ZERO,
-		[ OneFactor ]: gl.ONE,
-		[ SrcColorFactor ]: gl.SRC_COLOR,
-		[ SrcAlphaFactor ]: gl.SRC_ALPHA,
-		[ SrcAlphaSaturateFactor ]: gl.SRC_ALPHA_SATURATE,
-		[ DstColorFactor ]: gl.DST_COLOR,
-		[ DstAlphaFactor ]: gl.DST_ALPHA,
-		[ OneMinusSrcColorFactor ]: gl.ONE_MINUS_SRC_COLOR,
-		[ OneMinusSrcAlphaFactor ]: gl.ONE_MINUS_SRC_ALPHA,
-		[ OneMinusDstColorFactor ]: gl.ONE_MINUS_DST_COLOR,
-		[ OneMinusDstAlphaFactor ]: gl.ONE_MINUS_DST_ALPHA,
-		[ ConstantColorFactor ]: gl.CONSTANT_COLOR,
-		[ OneMinusConstantColorFactor ]: gl.ONE_MINUS_CONSTANT_COLOR,
-		[ ConstantAlphaFactor ]: gl.CONSTANT_ALPHA,
-		[ OneMinusConstantAlphaFactor ]: gl.ONE_MINUS_CONSTANT_ALPHA
+		[ZeroFactor]: gl.ZERO,
+		[OneFactor]: gl.ONE,
+		[SrcColorFactor]: gl.SRC_COLOR,
+		[SrcAlphaFactor]: gl.SRC_ALPHA,
+		[SrcAlphaSaturateFactor]: gl.SRC_ALPHA_SATURATE,
+		[DstColorFactor]: gl.DST_COLOR,
+		[DstAlphaFactor]: gl.DST_ALPHA,
+		[OneMinusSrcColorFactor]: gl.ONE_MINUS_SRC_COLOR,
+		[OneMinusSrcAlphaFactor]: gl.ONE_MINUS_SRC_ALPHA,
+		[OneMinusDstColorFactor]: gl.ONE_MINUS_DST_COLOR,
+		[OneMinusDstAlphaFactor]: gl.ONE_MINUS_DST_ALPHA,
+		[ConstantColorFactor]: gl.CONSTANT_COLOR,
+		[OneMinusConstantColorFactor]: gl.ONE_MINUS_CONSTANT_COLOR,
+		[ConstantAlphaFactor]: gl.CONSTANT_ALPHA,
+		[OneMinusConstantAlphaFactor]: gl.ONE_MINUS_CONSTANT_ALPHA
 	};
 
 	/**
@@ -623,89 +613,79 @@ function WebGLState( gl ) {
 	 * @param blendAlpha 混合Alpha值
 	 * @param premultipliedAlpha 是否使用预乘Alpha
 	 */
-	function setBlending( blending, blendEquation, blendSrc, blendDst, blendEquationAlpha, blendSrcAlpha, blendDstAlpha, blendColor, blendAlpha, premultipliedAlpha ) {
-
-		if ( blending === NoBlending ) {
-
-			if ( currentBlendingEnabled === true ) {
-
-				disable( gl.BLEND );
+	function setBlending(blending, blendEquation, blendSrc, blendDst, blendEquationAlpha, blendSrcAlpha, blendDstAlpha, blendColor, blendAlpha, premultipliedAlpha) {
+		if (blending === NoBlending) {
+			if (currentBlendingEnabled === true) {
+				disable(gl.BLEND);
 				currentBlendingEnabled = false;
-
 			}
-
 			return;
-
 		}
-
-		if ( currentBlendingEnabled === false ) {
-
-			enable( gl.BLEND );
+		if (currentBlendingEnabled === false) {
+			enable(gl.BLEND);
 			currentBlendingEnabled = true;
-
 		}
+		if (blending !== CustomBlending) {
 
-		if ( blending !== CustomBlending ) {
+			if (blending !== currentBlending || premultipliedAlpha !== currentPremultipledAlpha) {
 
-			if ( blending !== currentBlending || premultipliedAlpha !== currentPremultipledAlpha ) {
+				if (currentBlendEquation !== AddEquation || currentBlendEquationAlpha !== AddEquation) {
 
-				if ( currentBlendEquation !== AddEquation || currentBlendEquationAlpha !== AddEquation ) {
-
-					gl.blendEquation( gl.FUNC_ADD );
+					gl.blendEquation(gl.FUNC_ADD);
 
 					currentBlendEquation = AddEquation;
 					currentBlendEquationAlpha = AddEquation;
 
 				}
 
-				if ( premultipliedAlpha ) {
+				if (premultipliedAlpha) {
 
-					switch ( blending ) {
+					switch (blending) {
 
 						case NormalBlending:
-							gl.blendFuncSeparate( gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
+							gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 							break;
 
 						case AdditiveBlending:
-							gl.blendFunc( gl.ONE, gl.ONE );
+							gl.blendFunc(gl.ONE, gl.ONE);
 							break;
 
 						case SubtractiveBlending:
-							gl.blendFuncSeparate( gl.ZERO, gl.ONE_MINUS_SRC_COLOR, gl.ZERO, gl.ONE );
+							gl.blendFuncSeparate(gl.ZERO, gl.ONE_MINUS_SRC_COLOR, gl.ZERO, gl.ONE);
 							break;
 
 						case MultiplyBlending:
-							gl.blendFuncSeparate( gl.ZERO, gl.SRC_COLOR, gl.ZERO, gl.SRC_ALPHA );
+							gl.blendFuncSeparate(gl.ZERO, gl.SRC_COLOR, gl.ZERO, gl.SRC_ALPHA);
 							break;
 
 						default:
-							console.error( 'THREE.WebGLState: Invalid blending: ', blending );
+							console.error('THREE.WebGLState: Invalid blending: ', blending);
 							break;
 
 					}
 
 				} else {
 
-					switch ( blending ) {
+					switch (blending) {
 
 						case NormalBlending:
-							gl.blendFuncSeparate( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
+							gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 							break;
 
 						case AdditiveBlending:
-							gl.blendFunc( gl.SRC_ALPHA, gl.ONE );
+							gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 							break;
 
 						case SubtractiveBlending:
-							gl.blendFuncSeparate( gl.ZERO, gl.ONE_MINUS_SRC_COLOR, gl.ZERO, gl.ONE );
+							gl.blendFuncSeparate(gl.ZERO, gl.ONE_MINUS_SRC_COLOR, gl.ZERO, gl.ONE);
 							break;
 
 						case MultiplyBlending:
-							gl.blendFunc( gl.ZERO, gl.SRC_COLOR );
+							gl.blendFunc(gl.ZERO, gl.SRC_COLOR);
 							break;
 
 						default:
-							console.error( 'THREE.WebGLState: Invalid blending: ', blending );
+							console.error('THREE.WebGLState: Invalid blending: ', blending);
 							break;
 
 					}
@@ -716,7 +696,7 @@ function WebGLState( gl ) {
 				currentBlendDst = null;
 				currentBlendSrcAlpha = null;
 				currentBlendDstAlpha = null;
-				currentBlendColor.set( 0, 0, 0 );
+				currentBlendColor.set(0, 0, 0);
 				currentBlendAlpha = 0;
 
 				currentBlending = blending;
@@ -727,25 +707,24 @@ function WebGLState( gl ) {
 			return;
 
 		}
-
 		// custom blending
 
 		blendEquationAlpha = blendEquationAlpha || blendEquation;
 		blendSrcAlpha = blendSrcAlpha || blendSrc;
 		blendDstAlpha = blendDstAlpha || blendDst;
 
-		if ( blendEquation !== currentBlendEquation || blendEquationAlpha !== currentBlendEquationAlpha ) {
+		if (blendEquation !== currentBlendEquation || blendEquationAlpha !== currentBlendEquationAlpha) {
 
-			gl.blendEquationSeparate( equationToGL[ blendEquation ], equationToGL[ blendEquationAlpha ] );
+			gl.blendEquationSeparate(equationToGL[blendEquation], equationToGL[blendEquationAlpha]);
 
 			currentBlendEquation = blendEquation;
 			currentBlendEquationAlpha = blendEquationAlpha;
 
 		}
 
-		if ( blendSrc !== currentBlendSrc || blendDst !== currentBlendDst || blendSrcAlpha !== currentBlendSrcAlpha || blendDstAlpha !== currentBlendDstAlpha ) {
+		if (blendSrc !== currentBlendSrc || blendDst !== currentBlendDst || blendSrcAlpha !== currentBlendSrcAlpha || blendDstAlpha !== currentBlendDstAlpha) {
 
-			gl.blendFuncSeparate( factorToGL[ blendSrc ], factorToGL[ blendDst ], factorToGL[ blendSrcAlpha ], factorToGL[ blendDstAlpha ] );
+			gl.blendFuncSeparate(factorToGL[blendSrc], factorToGL[blendDst], factorToGL[blendSrcAlpha], factorToGL[blendDstAlpha]);
 
 			currentBlendSrc = blendSrc;
 			currentBlendDst = blendDst;
@@ -754,11 +733,11 @@ function WebGLState( gl ) {
 
 		}
 
-		if ( blendColor.equals( currentBlendColor ) === false || blendAlpha !== currentBlendAlpha ) {
+		if (blendColor.equals(currentBlendColor) === false || blendAlpha !== currentBlendAlpha) {
 
-			gl.blendColor( blendColor.r, blendColor.g, blendColor.b, blendAlpha );
+			gl.blendColor(blendColor.r, blendColor.g, blendColor.b, blendAlpha);
 
-			currentBlendColor.copy( blendColor );
+			currentBlendColor.copy(blendColor);
 			currentBlendAlpha = blendAlpha;
 
 		}
@@ -774,41 +753,54 @@ function WebGLState( gl ) {
 	 * @param material 材质对象
 	 * @param frontFaceCW 是否顺时针为正面
 	 */
-	function setMaterial( material, frontFaceCW ) {
+	function setMaterial(material, frontFaceCW) {
 
+		// 根据材质的双面属性，设置是否开启背面剔除
 		material.side === DoubleSide
-			? disable( gl.CULL_FACE )
-			: enable( gl.CULL_FACE );
+			? disable(gl.CULL_FACE)
+			: enable(gl.CULL_FACE);
 
-		let flipSided = ( material.side === BackSide );
-		if ( frontFaceCW ) flipSided = ! flipSided;
+		// 判断是否翻转面，取决于材质的单面属性以及frontFaceCW参数
+		let flipSided = (material.side === BackSide);
+		if (frontFaceCW) flipSided = !flipSided;
 
-		setFlipSided( flipSided );
+		// 设置是否翻转面
+		setFlipSided(flipSided);
 
-		( material.blending === NormalBlending && material.transparent === false )
-			? setBlending( NoBlending )
-			: setBlending( material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.blendColor, material.blendAlpha, material.premultipliedAlpha );
+		// 根据材质的混合属性，设置混合方式
+		(material.blending === NormalBlending && material.transparent === false)
+			? setBlending(NoBlending)
+			: setBlending(material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.blendColor, material.blendAlpha, material.premultipliedAlpha);
+
 		// 深度和颜色缓冲区设置
-		depthBuffer.setFunc( material.depthFunc );
-		depthBuffer.setTest( material.depthTest );
-		depthBuffer.setMask( material.depthWrite );
-		colorBuffer.setMask( material.colorWrite );
+		// 设置深度测试函数
+		// 深度和颜色缓冲区设置
+		depthBuffer.setFunc(material.depthFunc);
+		// 设置是否进行深度测试
+		depthBuffer.setTest(material.depthTest);
+		// 设置是否写入深度缓冲区
+		depthBuffer.setMask(material.depthWrite);
+		// 设置是否写入颜色缓冲区
+		colorBuffer.setMask(material.colorWrite);
 
 		const stencilWrite = material.stencilWrite;
-		stencilBuffer.setTest( stencilWrite );
-		if ( stencilWrite ) {
-
-			stencilBuffer.setMask( material.stencilWriteMask );
-			stencilBuffer.setFunc( material.stencilFunc, material.stencilRef, material.stencilFuncMask );
-			stencilBuffer.setOp( material.stencilFail, material.stencilZFail, material.stencilZPass );
-
+		// 根据材质的属性，设置是否开启模板测试
+		stencilBuffer.setTest(stencilWrite);
+		if (stencilWrite) {
+			// 设置模板写入的掩码
+			stencilBuffer.setMask(material.stencilWriteMask);
+			// 设置模板测试函数、参考值和掩码
+			stencilBuffer.setFunc(material.stencilFunc, material.stencilRef, material.stencilFuncMask);
+			// 设置模板测试失败、深度测试失败和深度测试通过时的操作
+			stencilBuffer.setOp(material.stencilFail, material.stencilZFail, material.stencilZPass);
 		}
 		// 设置多边形偏移
-		setPolygonOffset( material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits );
-
+		// 设置多边形偏移参数
+		setPolygonOffset(material.polygonOffset, material.polygonOffsetFactor, material.polygonOffsetUnits);
+		// gl 根据.材质的alphaToCoverage是否开启多重采样抗
 		material.alphaToCoverage === true
-			? enable( gl.SAMPLE_ALPHA_TO_COVERAGE )
-			: disable( gl.SAMPLE_ALPHA_TO_COVERAGE );
+			? enable(gl.SAMPLE_ALPHA_TO_COVERAGE)
+			: disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
 
 	}
 
@@ -818,24 +810,20 @@ function WebGLState( gl ) {
 	 * @param flipSided 是否翻转面，true表示翻转，false表示不翻转
 	 * @returns 无返回值
 	 */
-	function setFlipSided( flipSided ) {
-
-		if ( currentFlipSided !== flipSided ) {
-
-			if ( flipSided ) {
-
-				gl.frontFace( gl.CW );
-
+	function setFlipSided(flipSided) {
+		// 判断传入的 flipSided 是否与当前的 currentFlipSided 不相等
+		if (currentFlipSided !== flipSided) {
+			// 如果 flipSided 为真
+			if (flipSided) {
+				// 设置正面为顺时针方向
+				gl.frontFace(gl.CW);
 			} else {
-
-				gl.frontFace( gl.CCW );
-
+				// 设置正面为逆时针方向
+				gl.frontFace(gl.CCW);
 			}
-
+			// 更新 currentFlipSided 的值为 flipSided
 			currentFlipSided = flipSided;
-
 		}
-
 	}
 
 	/**
@@ -843,38 +831,34 @@ function WebGLState( gl ) {
 	 *
 	 * @param cullFace 剔除面，可选值为 CullFaceNone、CullFaceBack、CullFaceFront 或 CullFaceFrontAndBack
 	 */
-	function setCullFace( cullFace ) {
-
-		if ( cullFace !== CullFaceNone ) {
-
-			enable( gl.CULL_FACE );
-
-			if ( cullFace !== currentCullFace ) {
-
-				if ( cullFace === CullFaceBack ) {
-
-					gl.cullFace( gl.BACK );
-
-				} else if ( cullFace === CullFaceFront ) {
-
-					gl.cullFace( gl.FRONT );
-
+	function setCullFace(cullFace) {
+		// 如果 cullFace 不等于 CullFaceNone
+		if (cullFace !== CullFaceNone) {
+			// 启用剔除功能
+			enable(gl.CULL_FACE);
+			// 如果 cullFace 不等于当前剔除面
+			if (cullFace !== currentCullFace) {
+				// 如果 cullFace 等于 CullFaceBack
+				if (cullFace === CullFaceBack) {
+					// 设置剔除背面
+					gl.cullFace(gl.BACK);
+				// 否则如果 cullFace 等于 CullFaceFront
+				} else if (cullFace === CullFaceFront) {
+					// 设置剔除正面
+					gl.cullFace(gl.FRONT);
+				// 否则
 				} else {
-
-					gl.cullFace( gl.FRONT_AND_BACK );
-
+					// 设置剔除正面和背面
+					gl.cullFace(gl.FRONT_AND_BACK);
 				}
-
 			}
-
+		// 否则
 		} else {
-
-			disable( gl.CULL_FACE );
-
+			// 禁用剔除功能
+			disable(gl.CULL_FACE);
 		}
-
+		// 更新当前剔除面为 cullFace
 		currentCullFace = cullFace;
-
 	}
 
 	/**
@@ -883,11 +867,11 @@ function WebGLState( gl ) {
 	 * @param width 线宽值
 	 * @returns 无返回值
 	 */
-	function setLineWidth( width ) {
+	function setLineWidth(width) {
 
-		if ( width !== currentLineWidth ) {
+		if (width !== currentLineWidth) {
 
-			if ( lineWidthAvailable ) gl.lineWidth( width );
+			if (lineWidthAvailable) gl.lineWidth(width);
 
 			currentLineWidth = width;
 
@@ -902,27 +886,17 @@ function WebGLState( gl ) {
 	 * @param factor 偏移因子
 	 * @param units 偏移单位
 	 */
-	function setPolygonOffset( polygonOffset, factor, units ) {
-
-		if ( polygonOffset ) {
-
-			enable( gl.POLYGON_OFFSET_FILL );
-
-			if ( currentPolygonOffsetFactor !== factor || currentPolygonOffsetUnits !== units ) {
-
-				gl.polygonOffset( factor, units );
-
+	function setPolygonOffset(polygonOffset, factor, units) {
+		if (polygonOffset) {
+			enable(gl.POLYGON_OFFSET_FILL);
+			if (currentPolygonOffsetFactor !== factor || currentPolygonOffsetUnits !== units) {
+				gl.polygonOffset(factor, units);
 				currentPolygonOffsetFactor = factor;
 				currentPolygonOffsetUnits = units;
-
 			}
-
 		} else {
-
-			disable( gl.POLYGON_OFFSET_FILL );
-
+			disable(gl.POLYGON_OFFSET_FILL);
 		}
-
 	}
 
 	/**
@@ -931,18 +905,16 @@ function WebGLState( gl ) {
 	 * @param scissorTest 是否开启剪裁测试
 	 * @returns 无返回值
 	 */
-	function setScissorTest( scissorTest ) {
+	function setScissorTest(scissorTest) {
 
-		if ( scissorTest ) {
+		if (scissorTest) {
 
-			enable( gl.SCISSOR_TEST );
+			enable(gl.SCISSOR_TEST);
 
 		} else {
 
-			disable( gl.SCISSOR_TEST );
-
+			disable(gl.SCISSOR_TEST);
 		}
-
 	}
 	/**
 	 * 激活纹理
@@ -950,13 +922,13 @@ function WebGLState( gl ) {
 	 * @param webglSlot WebGL纹理槽位，可选参数，默认为gl.TEXTURE0 + maxTextures - 1
 	 * @returns 无返回值
 	 */
-	function activeTexture( webglSlot ) {
+	function activeTexture(webglSlot) {
 
-		if ( webglSlot === undefined ) webglSlot = gl.TEXTURE0 + maxTextures - 1;
+		if (webglSlot === undefined) webglSlot = gl.TEXTURE0 + maxTextures - 1;
 
-		if ( currentTextureSlot !== webglSlot ) {
+		if (currentTextureSlot !== webglSlot) {
 
-			gl.activeTexture( webglSlot );
+			gl.activeTexture(webglSlot);
 			currentTextureSlot = webglSlot;
 
 		}
@@ -970,11 +942,11 @@ function WebGLState( gl ) {
 	 * @param webglTexture WebGL纹理对象
 	 * @param webglSlot WebGL纹理槽位，若未指定则使用当前纹理槽位
 	 */
-	function bindTexture( webglType, webglTexture, webglSlot ) {
+	function bindTexture(webglType, webglTexture, webglSlot) {
 
-		if ( webglSlot === undefined ) {
+		if (webglSlot === undefined) {
 
-			if ( currentTextureSlot === null ) {
+			if (currentTextureSlot === null) {
 
 				webglSlot = gl.TEXTURE0 + maxTextures - 1;
 
@@ -986,25 +958,25 @@ function WebGLState( gl ) {
 
 		}
 
-		let boundTexture = currentBoundTextures[ webglSlot ];
+		let boundTexture = currentBoundTextures[webglSlot];
 
-		if ( boundTexture === undefined ) {
+		if (boundTexture === undefined) {
 
 			boundTexture = { type: undefined, texture: undefined };
-			currentBoundTextures[ webglSlot ] = boundTexture;
+			currentBoundTextures[webglSlot] = boundTexture;
 
 		}
 
-		if ( boundTexture.type !== webglType || boundTexture.texture !== webglTexture ) {
+		if (boundTexture.type !== webglType || boundTexture.texture !== webglTexture) {
 
-			if ( currentTextureSlot !== webglSlot ) {
+			if (currentTextureSlot !== webglSlot) {
 
-				gl.activeTexture( webglSlot );
+				gl.activeTexture(webglSlot);
 				currentTextureSlot = webglSlot;
 
 			}
 
-			gl.bindTexture( webglType, webglTexture || emptyTextures[ webglType ] );
+			gl.bindTexture(webglType, webglTexture || emptyTextures[webglType]);
 
 			boundTexture.type = webglType;
 			boundTexture.texture = webglTexture;
@@ -1013,13 +985,18 @@ function WebGLState( gl ) {
 
 	}
 
+	/**
+	 * 取消绑定纹理
+	 *
+	 * @returns 无
+	 */
 	function unbindTexture() {
 
-		const boundTexture = currentBoundTextures[ currentTextureSlot ];
+		const boundTexture = currentBoundTextures[currentTextureSlot];
 
-		if ( boundTexture !== undefined && boundTexture.type !== undefined ) {
+		if (boundTexture !== undefined && boundTexture.type !== undefined) {
 
-			gl.bindTexture( boundTexture.type, null );
+			gl.bindTexture(boundTexture.type, null);
 
 			boundTexture.type = undefined;
 			boundTexture.texture = undefined;
@@ -1037,11 +1014,11 @@ function WebGLState( gl ) {
 
 		try {
 
-			gl.compressedTexImage2D.apply( gl, arguments );
+			gl.compressedTexImage2D.apply(gl, arguments);
 
-		} catch ( error ) {
+		} catch (error) {
 
-			console.error( 'THREE.WebGLState:', error );
+			console.error('THREE.WebGLState:', error);
 
 		}
 
@@ -1067,11 +1044,11 @@ function WebGLState( gl ) {
 
 		try {
 
-			gl.compressedTexImage3D.apply( gl, arguments );
+			gl.compressedTexImage3D.apply(gl, arguments);
 
-		} catch ( error ) {
+		} catch (error) {
 
-			console.error( 'THREE.WebGLState:', error );
+			console.error('THREE.WebGLState:', error);
 
 		}
 
@@ -1089,11 +1066,11 @@ function WebGLState( gl ) {
 
 		try {
 
-			gl.texSubImage2D.apply( gl, arguments );
+			gl.texSubImage2D.apply(gl, arguments);
 
-		} catch ( error ) {
+		} catch (error) {
 
-			console.error( 'THREE.WebGLState:', error );
+			console.error('THREE.WebGLState:', error);
 
 		}
 
@@ -1112,11 +1089,11 @@ function WebGLState( gl ) {
 
 		try {
 
-			gl.texSubImage3D.apply( gl, arguments );
+			gl.texSubImage3D.apply(gl, arguments);
 
-		} catch ( error ) {
+		} catch (error) {
 
-			console.error( 'THREE.WebGLState:', error );
+			console.error('THREE.WebGLState:', error);
 
 		}
 
@@ -1132,11 +1109,11 @@ function WebGLState( gl ) {
 
 		try {
 
-			gl.compressedTexSubImage2D.apply( gl, arguments );
+			gl.compressedTexSubImage2D.apply(gl, arguments);
 
-		} catch ( error ) {
+		} catch (error) {
 
-			console.error( 'THREE.WebGLState:', error );
+			console.error('THREE.WebGLState:', error);
 
 		}
 
@@ -1151,11 +1128,11 @@ function WebGLState( gl ) {
 
 		try {
 
-			gl.compressedTexSubImage3D.apply( gl, arguments );
+			gl.compressedTexSubImage3D.apply(gl, arguments);
 
-		} catch ( error ) {
+		} catch (error) {
 
-			console.error( 'THREE.WebGLState:', error );
+			console.error('THREE.WebGLState:', error);
 
 		}
 
@@ -1170,11 +1147,11 @@ function WebGLState( gl ) {
 
 		try {
 
-			gl.texStorage2D.apply( gl, arguments );
+			gl.texStorage2D.apply(gl, arguments);
 
-		} catch ( error ) {
+		} catch (error) {
 
-			console.error( 'THREE.WebGLState:', error );
+			console.error('THREE.WebGLState:', error);
 
 		}
 
@@ -1194,11 +1171,11 @@ function WebGLState( gl ) {
 
 		try {
 
-			gl.texStorage3D.apply( gl, arguments );
+			gl.texStorage3D.apply(gl, arguments);
 
-		} catch ( error ) {
+		} catch (error) {
 
-			console.error( 'THREE.WebGLState:', error );
+			console.error('THREE.WebGLState:', error);
 
 		}
 
@@ -1213,11 +1190,11 @@ function WebGLState( gl ) {
 
 		try {
 
-			gl.texImage2D.apply( gl, arguments );
+			gl.texImage2D.apply(gl, arguments);
 
-		} catch ( error ) {
+		} catch (error) {
 
-			console.error( 'THREE.WebGLState:', error );
+			console.error('THREE.WebGLState:', error);
 
 		}
 
@@ -1236,11 +1213,11 @@ function WebGLState( gl ) {
 
 		try {
 
-			gl.texImage3D.apply( gl, arguments );
+			gl.texImage3D.apply(gl, arguments);
 
-		} catch ( error ) {
+		} catch (error) {
 
-			console.error( 'THREE.WebGLState:', error );
+			console.error('THREE.WebGLState:', error);
 
 		}
 
@@ -1251,12 +1228,12 @@ function WebGLState( gl ) {
 	 *
 	 * @param scissor 剪裁区域对象，包含x、y、z、w四个属性，分别代表剪裁区域的左上角x坐标、y坐标、宽度和高度
 	 */
-	function scissor( scissor ) {
+	function scissor(scissor) {
 
-		if ( currentScissor.equals( scissor ) === false ) {
+		if (currentScissor.equals(scissor) === false) {
 
-			gl.scissor( scissor.x, scissor.y, scissor.z, scissor.w );
-			currentScissor.copy( scissor );
+			gl.scissor(scissor.x, scissor.y, scissor.z, scissor.w);
+			currentScissor.copy(scissor);
 
 		}
 
@@ -1268,12 +1245,12 @@ function WebGLState( gl ) {
 	 * @param {Object} viewport - 包含视口信息的对象，包含x, y, z, w四个属性，分别代表视口的左下角x坐标，左下角y坐标，宽度和高度
 	 * @description 如果传入的视口与当前视口不一致，则更新WebGL的视口设置，并更新当前视口为新的视口信息
 	 */
-	function viewport( viewport ) {
+	function viewport(viewport) {
 
-		if ( currentViewport.equals( viewport ) === false ) {
+		if (currentViewport.equals(viewport) === false) {
 
-			gl.viewport( viewport.x, viewport.y, viewport.z, viewport.w );
-			currentViewport.copy( viewport );
+			gl.viewport(viewport.x, viewport.y, viewport.z, viewport.w);
+			currentViewport.copy(viewport);
 
 		}
 
@@ -1285,25 +1262,25 @@ function WebGLState( gl ) {
 	 * @param uniformsGroup 统一的块对象
 	 * @param program 着色器程序
 	 */
-	function updateUBOMapping( uniformsGroup, program ) {
+	function updateUBOMapping(uniformsGroup, program) {
 
-		let mapping = uboProgramMap.get( program );
+		let mapping = uboProgramMap.get(program);
 
-		if ( mapping === undefined ) {
+		if (mapping === undefined) {
 
 			mapping = new WeakMap();
 
-			uboProgramMap.set( program, mapping );
+			uboProgramMap.set(program, mapping);
 
 		}
 
-		let blockIndex = mapping.get( uniformsGroup );
+		let blockIndex = mapping.get(uniformsGroup);
 
-		if ( blockIndex === undefined ) {
+		if (blockIndex === undefined) {
 
-			blockIndex = gl.getUniformBlockIndex( program, uniformsGroup.name );
+			blockIndex = gl.getUniformBlockIndex(program, uniformsGroup.name);
 
-			mapping.set( uniformsGroup, blockIndex );
+			mapping.set(uniformsGroup, blockIndex);
 
 		}
 
@@ -1315,73 +1292,69 @@ function WebGLState( gl ) {
 	 * @param uniformsGroup 统一块组
 	 * @param program WebGL程序
 	 */
-	function uniformBlockBinding( uniformsGroup, program ) {
+	function uniformBlockBinding(uniformsGroup, program) {
 
-		const mapping = uboProgramMap.get( program );
-		const blockIndex = mapping.get( uniformsGroup );
+		const mapping = uboProgramMap.get(program);
+		const blockIndex = mapping.get(uniformsGroup);
 
-		if ( uboBindings.get( program ) !== blockIndex ) {
+		if (uboBindings.get(program) !== blockIndex) {
 
 			// bind shader specific block index to global block point
-			gl.uniformBlockBinding( program, blockIndex, uniformsGroup.__bindingPointIndex );
+			gl.uniformBlockBinding(program, blockIndex, uniformsGroup.__bindingPointIndex);
 
-			uboBindings.set( program, blockIndex );
+			uboBindings.set(program, blockIndex);
 
 		}
 
 	}
 
-	//
-
 	/**
 	 * 重置 WebGL 上下文状态
 	 */
 	function reset() {
-
-		// reset state
 		// 禁用各种WebGL功能
-		gl.disable( gl.BLEND );
-		gl.disable( gl.CULL_FACE );
-		gl.disable( gl.DEPTH_TEST );
-		gl.disable( gl.POLYGON_OFFSET_FILL );
-		gl.disable( gl.SCISSOR_TEST );
-		gl.disable( gl.STENCIL_TEST );
-		gl.disable( gl.SAMPLE_ALPHA_TO_COVERAGE );
+		gl.disable(gl.BLEND);
+		gl.disable(gl.CULL_FACE);
+		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.POLYGON_OFFSET_FILL);
+		gl.disable(gl.SCISSOR_TEST);
+		gl.disable(gl.STENCIL_TEST);
+		gl.disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
 		// 设置混合参数
-		gl.blendEquation( gl.FUNC_ADD );
-		gl.blendFunc( gl.ONE, gl.ZERO );
-		gl.blendFuncSeparate( gl.ONE, gl.ZERO, gl.ONE, gl.ZERO );
-		gl.blendColor( 0, 0, 0, 0 );
+		gl.blendEquation(gl.FUNC_ADD);
+		gl.blendFunc(gl.ONE, gl.ZERO);
+		gl.blendFuncSeparate(gl.ONE, gl.ZERO, gl.ONE, gl.ZERO);
+		gl.blendColor(0, 0, 0, 0);
 		// 控制哪些颜色组件可以写入缓冲区
-		gl.colorMask( true, true, true, true );
-		gl.clearColor( 0, 0, 0, 0 );
+		gl.colorMask(true, true, true, true);
+		gl.clearColor(0, 0, 0, 0);
 		// 设置深度缓冲区的写入掩码和深度比较函数
-		gl.depthMask( true );
-		gl.depthFunc( gl.LESS );
-		gl.clearDepth( 1 );
+		gl.depthMask(true);
+		gl.depthFunc(gl.LESS);
+		gl.clearDepth(1);
 		// 设置模板缓冲区的参数
-		gl.stencilMask( 0xffffffff );
-		gl.stencilFunc( gl.ALWAYS, 0, 0xffffffff );
-		gl.stencilOp( gl.KEEP, gl.KEEP, gl.KEEP );
-		gl.clearStencil( 0 );
+		gl.stencilMask(0xffffffff);
+		gl.stencilFunc(gl.ALWAYS, 0, 0xffffffff);
+		gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+		gl.clearStencil(0);
 		// 设置背面剔除
-		gl.cullFace( gl.BACK );
-		gl.frontFace( gl.CCW );
+		gl.cullFace(gl.BACK);
+		gl.frontFace(gl.CCW);
 		// 设置多边形偏移 可以避免z-fighting 问题
-		gl.polygonOffset( 0, 0 );
+		gl.polygonOffset(0, 0);
 		// 设置活动纹理单元
-		gl.activeTexture( gl.TEXTURE0 );
+		gl.activeTexture(gl.TEXTURE0);
 		// 接触绑定帧缓冲
-		gl.bindFramebuffer( gl.FRAMEBUFFER, null );
-		gl.bindFramebuffer( gl.DRAW_FRAMEBUFFER, null );
-		gl.bindFramebuffer( gl.READ_FRAMEBUFFER, null );
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
 		// 接触绑定当前的着色器程序
-		gl.useProgram( null );
+		gl.useProgram(null);
 		// 设置线宽
-		gl.lineWidth( 1 );
+		gl.lineWidth(1);
 		// 设置裁剪矩形和视口
-		gl.scissor( 0, 0, gl.canvas.width, gl.canvas.height );
-		gl.viewport( 0, 0, gl.canvas.width, gl.canvas.height );
+		gl.scissor(0, 0, gl.canvas.width, gl.canvas.height);
+		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
 		// reset internals
 		// 重置内部状态
@@ -1404,7 +1377,7 @@ function WebGLState( gl ) {
 		currentBlendEquationAlpha = null;
 		currentBlendSrcAlpha = null;
 		currentBlendDstAlpha = null;
-		currentBlendColor = new Color( 0, 0, 0 );
+		currentBlendColor = new Color(0, 0, 0);
 		currentBlendAlpha = 0;
 		currentPremultipledAlpha = false;
 
@@ -1416,8 +1389,8 @@ function WebGLState( gl ) {
 		currentPolygonOffsetFactor = null;
 		currentPolygonOffsetUnits = null;
 
-		currentScissor.set( 0, 0, gl.canvas.width, gl.canvas.height );
-		currentViewport.set( 0, 0, gl.canvas.width, gl.canvas.height );
+		currentScissor.set(0, 0, gl.canvas.width, gl.canvas.height);
+		currentViewport.set(0, 0, gl.canvas.width, gl.canvas.height);
 		// 重置缓冲
 		colorBuffer.reset();
 		depthBuffer.reset();

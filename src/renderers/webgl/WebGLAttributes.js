@@ -160,20 +160,23 @@ function WebGLAttributes( gl ) {
 
 	}
 
+	/**
+	 * 从缓冲区中移除指定的属性
+	 *
+	 * @param attribute 要移除的属性
+	 * @returns 无返回值
+	 */
 	function remove( attribute ) {
-
+		// 如果属性是交错缓冲区属性，则将属性替换为其数据
 		if ( attribute.isInterleavedBufferAttribute ) attribute = attribute.data;
-
+		// 获取属性对应的缓冲区数据
 		const data = buffers.get( attribute );
-
 		if ( data ) {
-
+			// 删除WebGL缓冲区
 			gl.deleteBuffer( data.buffer );
-
+			// 从缓冲区集合中删除属性
 			buffers.delete( attribute );
-
 		}
-
 	}
 
 	/**
@@ -185,50 +188,46 @@ function WebGLAttributes( gl ) {
 	 * @throws 当缓冲大小不匹配原始大小时，抛出错误
 	 */
 	function update( attribute, bufferType ) {
-
+		// 如果 attribute 是 GLBufferAttribute 类型
 		if ( attribute.isGLBufferAttribute ) {
-
+			// 从 buffers 中获取 attribute 对应的缓存对象
 			const cached = buffers.get( attribute );
-
+			// 如果缓存对象不存在或者缓存对象的版本号小于 attribute 的版本号
 			if ( ! cached || cached.version < attribute.version ) {
-
+				// 更新缓存对象
 				buffers.set( attribute, {
 					buffer: attribute.buffer,
 					type: attribute.type,
 					bytesPerElement: attribute.elementSize,
 					version: attribute.version
 				} );
-
 			}
-
+			// 结束函数
 			return;
-
 		}
 
+		// 如果 attribute 是 InterleavedBufferAttribute 类型，将其转换为 data
 		if ( attribute.isInterleavedBufferAttribute ) attribute = attribute.data;
-
+		// 从 buffers 中获取 attribute 对应的缓存数据
 		const data = buffers.get( attribute );
-
+		// 如果缓存数据不存在
 		if ( data === undefined ) {
-
+			// 创建缓存数据
 			buffers.set( attribute, createBuffer( attribute, bufferType ) );
-
+		// 如果缓存数据的版本号小于 attribute 的版本号
 		} else if ( data.version < attribute.version ) {
-
+			// 如果缓存数据的大小不等于 attribute 的数组缓冲区的大小
 			if ( data.size !== attribute.array.byteLength ) {
-
+				// 抛出错误，不支持调整缓冲区属性的大小
 				throw new Error( 'THREE.WebGLAttributes: The size of the buffer attribute\'s array buffer does not match the original size. Resizing buffer attributes is not supported.' );
-
 			}
-
+			// 更新缓存数据对应的缓冲区
 			updateBuffer( data.buffer, attribute, bufferType );
 
+			// 更新缓存数据的版本号
 			data.version = attribute.version;
-
 		}
-
 	}
-
 	return {
 
 		get: get,

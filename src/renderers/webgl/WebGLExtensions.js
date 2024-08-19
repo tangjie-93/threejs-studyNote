@@ -22,7 +22,6 @@ function WebGLExtensions( gl ) {
 		if ( extensions[ name ] !== undefined ) {
 
 			return extensions[ name ];
-
 		}
 
 		let extension;

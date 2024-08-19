@@ -27,11 +27,24 @@ class Plane {
 
 	}
 
+	/**
+	 * 设置组件的值
+	 *
+	 * @param x 组件x的值
+	 * @param y 组件y的值
+	 * @param z 组件z的值
+	 * @param w 组件w的值
+	 * @returns 返回当前实例对象
+	 */
 	setComponents( x, y, z, w ) {
 
+		// 设置法向量的x、y、z分量
 		this.normal.set( x, y, z );
+
+		// 设置常数值
 		this.constant = w;
 
+		// 返回当前对象
 		return this;
 
 	}
