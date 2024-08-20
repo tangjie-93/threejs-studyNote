@@ -70,13 +70,10 @@ function WebGLRenderList() {
 	 * @description 清除相关数组并重置索引值
 	 */
 	function init() {
-
 		renderItemsIndex = 0;
-
 		opaque.length = 0;
 		transmissive.length = 0;
 		transparent.length = 0;
-
 	}
 
 	/**
@@ -91,11 +88,8 @@ function WebGLRenderList() {
 	 * @returns 下一个渲染项
 	 */
 	function getNextRenderItem( object, geometry, material, groupOrder, z, group ) {
-
 		let renderItem = renderItems[ renderItemsIndex ];
-
 		if ( renderItem === undefined ) {
-
 			renderItem = {
 				id: object.id,
 				object: object,
@@ -106,11 +100,8 @@ function WebGLRenderList() {
 				z: z,
 				group: group
 			};
-
 			renderItems[ renderItemsIndex ] = renderItem;
-
 		} else {
-
 			renderItem.id = object.id;
 			renderItem.object = object;
 			renderItem.geometry = geometry;
@@ -119,13 +110,9 @@ function WebGLRenderList() {
 			renderItem.renderOrder = object.renderOrder;
 			renderItem.z = z;
 			renderItem.group = group;
-
 		}
-
 		renderItemsIndex ++;
-
 		return renderItem;
-
 	}
 
 	/**
@@ -139,23 +126,14 @@ function WebGLRenderList() {
 	 * @param group 组
 	 */
 	function push( object, geometry, material, groupOrder, z, group ) {
-
 		const renderItem = getNextRenderItem( object, geometry, material, groupOrder, z, group );
-
 		if ( material.transmission > 0.0 ) {
-
 			transmissive.push( renderItem );
-
 		} else if ( material.transparent === true ) {
-
 			transparent.push( renderItem );
-
 		} else {
-
 			opaque.push( renderItem );
-
 		}
-
 	}
 
 	/**
@@ -169,23 +147,14 @@ function WebGLRenderList() {
 	 * @param group 组
 	 */
 	function unshift( object, geometry, material, groupOrder, z, group ) {
-
 		const renderItem = getNextRenderItem( object, geometry, material, groupOrder, z, group );
-
 		if ( material.transmission > 0.0 ) {
-
 			transmissive.unshift( renderItem );
-
 		} else if ( material.transparent === true ) {
-
 			transparent.unshift( renderItem );
-
 		} else {
-
 			opaque.unshift( renderItem );
-
 		}
-
 	}
 
 	/**
@@ -195,50 +164,37 @@ function WebGLRenderList() {
 	 * @param customTransparentSort 自定义透明排序函数，可选
 	 */
 	function sort( customOpaqueSort, customTransparentSort ) {
-
 		if ( opaque.length > 1 ) opaque.sort( customOpaqueSort || painterSortStable );
 		if ( transmissive.length > 1 ) transmissive.sort( customTransparentSort || reversePainterSortStable );
 		if ( transparent.length > 1 ) transparent.sort( customTransparentSort || reversePainterSortStable );
-
 	}
 
 	/**
 	 * 清理列表中不活动的渲染项的引用
 	 */
 	function finish() {
-
 		// Clear references from inactive renderItems in the list
-
 		for ( let i = renderItemsIndex, il = renderItems.length; i < il; i ++ ) {
-
 			const renderItem = renderItems[ i ];
-
 			if ( renderItem.id === null ) break;
-
 			renderItem.id = null;
 			renderItem.object = null;
 			renderItem.geometry = null;
 			renderItem.material = null;
 			renderItem.group = null;
-
 		}
-
 	}
 
 	return {
-
 		opaque: opaque,
 		transmissive: transmissive,
 		transparent: transparent,
-
 		init: init,
 		push: push,
 		unshift: unshift,
 		finish: finish,
-
 		sort: sort
 	};
-
 }
 
 /**
@@ -249,49 +205,46 @@ function WebGLRenderList() {
  */
 function WebGLRenderLists() {
 
+	// 创建一个WeakMap实例，用于存储场景与渲染列表数组的映射关系
 	let lists = new WeakMap();
-
+	// 获取指定场景和渲染调用深度的渲染列表
 	function get( scene, renderCallDepth ) {
-
+		// 获取指定场景的渲染列表数组
 		const listArray = lists.get( scene );
 		let list;
-
+		// 如果渲染列表数组为空（即未定义）
 		if ( listArray === undefined ) {
-
+			// 创建一个新的WebGLRenderList实例
 			list = new WebGLRenderList();
+			// 将新创建的渲染列表放入场景对应的渲染列表数组中
 			lists.set( scene, [ list ] );
-
+		// 如果渲染列表数组不为空
 		} else {
-
+			// 如果渲染调用深度大于等于渲染列表数组的长度
 			if ( renderCallDepth >= listArray.length ) {
-
+				// 创建一个新的WebGLRenderList实例
 				list = new WebGLRenderList();
+				// 将新创建的渲染列表添加到渲染列表数组的末尾
 				listArray.push( list );
-
+			// 如果渲染调用深度小于渲染列表数组的长度
 			} else {
-
+				// 直接获取渲染列表数组中对应渲染调用深度的渲染列表
 				list = listArray[ renderCallDepth ];
-
 			}
-
 		}
-
+		// 返回渲染列表
 		return list;
-
 	}
 
+	// 销毁WebGLRenderLists实例，清除存储的渲染列表数组
 	function dispose() {
-
 		lists = new WeakMap();
-
 	}
 
+	// 返回包含get和dispose方法的对象
 	return {
 		get: get,
 		dispose: dispose
 	};
-
 }
-
-
 export { WebGLRenderLists, WebGLRenderList };

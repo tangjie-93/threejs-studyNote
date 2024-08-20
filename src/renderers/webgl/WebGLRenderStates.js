@@ -115,50 +115,46 @@ function WebGLRenderState( extensions ) {
  * @returns {Object} 包含get和dispose两个方法的WebGLRenderStates对象。
  */
 function WebGLRenderStates( extensions ) {
-
+	// 创建一个WeakMap对象，用于存储场景与渲染状态数组的映射关系
 	let renderStates = new WeakMap();
-
+	// 获取指定场景的渲染状态
 	function get( scene, renderCallDepth = 0 ) {
-
+		// 从renderStates中获取场景对应的渲染状态数组
 		const renderStateArray = renderStates.get( scene );
 		let renderState;
-
+		// 如果渲染状态数组不存在
 		if ( renderStateArray === undefined ) {
-
+			// 创建一个新的WebGLRenderState对象
 			renderState = new WebGLRenderState( extensions );
+			// 将新的WebGLRenderState对象存入renderStates中，以场景为键，渲染状态数组为值
 			renderStates.set( scene, [ renderState ] );
-
+		// 如果渲染状态数组存在
 		} else {
-
+			// 如果当前的渲染调用深度大于等于渲染状态数组的长度
 			if ( renderCallDepth >= renderStateArray.length ) {
-
+				// 创建一个新的WebGLRenderState对象
 				renderState = new WebGLRenderState( extensions );
+				// 将新的WebGLRenderState对象添加到渲染状态数组的末尾
 				renderStateArray.push( renderState );
-
+			// 如果当前的渲染调用深度小于渲染状态数组的长度
 			} else {
-
+				// 从渲染状态数组中获取指定深度的渲染状态
 				renderState = renderStateArray[ renderCallDepth ];
-
 			}
-
 		}
-
+		// 返回渲染状态
 		return renderState;
-
 	}
-
+	// 销毁方法，清空renderStates
 	function dispose() {
-
 		renderStates = new WeakMap();
 
 	}
-
+	// 返回包含get和dispose方法的对象
 	return {
 		get: get,
 		dispose: dispose
 	};
-
 }
-
 
 export { WebGLRenderStates };
