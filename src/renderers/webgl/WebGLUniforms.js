@@ -71,41 +71,47 @@ const mat2array = new Float32Array( 4 );
 
 // Flattening for arrays of vectors and matrices
 
+/**
+ * 将数组扁平化为一维数组
+ *
+ * @param array 待处理的数组
+ * @param nBlocks 块的数量
+ * @param blockSize 块的大小
+ * @returns 扁平化后的一维数组
+ */
 function flatten( array, nBlocks, blockSize ) {
-
 	const firstElem = array[ 0 ];
-
+	// 如果第一个元素小于等于0或大于0，则直接返回原数组
 	if ( firstElem <= 0 || firstElem > 0 ) return array;
-	// unoptimized: ! isNaN( firstElem )
-	// see http://jacksondunstan.com/articles/983
-
 	const n = nBlocks * blockSize;
 	let r = arrayCacheF32[ n ];
-
 	if ( r === undefined ) {
-
+		// 如果缓存中没有对应长度的 Float32Array，则创建一个新的
 		r = new Float32Array( n );
 		arrayCacheF32[ n ] = r;
-
 	}
-
 	if ( nBlocks !== 0 ) {
-
+		// 将第一个元素转换为数组并存储到 r 中
 		firstElem.toArray( r, 0 );
-
 		for ( let i = 1, offset = 0; i !== nBlocks; ++ i ) {
-
+			// 计算下一个元素的偏移量
 			offset += blockSize;
+			// 将当前元素转换为数组并存储到 r 的对应位置
 			array[ i ].toArray( r, offset );
-
 		}
-
 	}
-
+	// 返回合并后的数组
 	return r;
 
 }
 
+/**
+ * 判断两个数组是否相等
+ *
+ * @param a 数组a
+ * @param b 数组b
+ * @returns 如果数组a和数组b相等则返回true，否则返回false
+ */
 function arraysEqual( a, b ) {
 
 	if ( a.length !== b.length ) return false;
@@ -120,6 +126,13 @@ function arraysEqual( a, b ) {
 
 }
 
+/**
+ * 复制数组
+ *
+ * @param a 目标数组
+ * @param b 源数组
+ * @returns 无返回值
+ */
 function copyArray( a, b ) {
 
 	for ( let i = 0, l = b.length; i < l; i ++ ) {
@@ -129,28 +142,27 @@ function copyArray( a, b ) {
 	}
 
 }
-
-// Texture unit allocation
-
+/**
+ * 分配纹理单元
+ *
+ * @param textures 纹理对象
+ * @param n 分配纹理单元的数量
+ * @returns 返回一个包含分配到的纹理单元编号的整型数组
+ */
 function allocTexUnits( textures, n ) {
-
+	// 从数组缓存中获取指定大小的数组
 	let r = arrayCacheI32[ n ];
-
+	// 如果数组为空，则创建一个新的数组并存储到数组缓存中
 	if ( r === undefined ) {
-
 		r = new Int32Array( n );
 		arrayCacheI32[ n ] = r;
-
 	}
-
+	// 遍历数组，为每个纹理分配纹理单元
 	for ( let i = 0; i !== n; ++ i ) {
-
 		r[ i ] = textures.allocateTextureUnit();
-
 	}
-
+	// 返回分配好的纹理单元数组
 	return r;
-
 }
 
 // --- Setters ---
@@ -160,87 +172,80 @@ function allocTexUnits( textures, n ) {
 
 // Single scalar
 
+/**
+ * 设置单个浮点数值到WebGL着色器的uniform变量中
+ *
+ * @param gl WebGL上下文对象
+ * @param v 浮点数值
+ * @returns 无返回值
+ */
 function setValueV1f( gl, v ) {
-
 	const cache = this.cache;
-
 	if ( cache[ 0 ] === v ) return;
-
 	gl.uniform1f( this.addr, v );
-
 	cache[ 0 ] = v;
-
 }
 
 // Single float vector (from flat array or THREE.VectorN)
 
+/**
+ *  设置2个浮点数值到WebGL着色器的uniform变量中
+ *
+ * @param gl WebGLRenderingContext对象
+ * @param v 包含x,y属性的对象或Float32Array数组
+ * @returns 无返回值
+ */
 function setValueV2f( gl, v ) {
-
 	const cache = this.cache;
-
 	if ( v.x !== undefined ) {
-
 		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y ) {
-
 			gl.uniform2f( this.addr, v.x, v.y );
-
 			cache[ 0 ] = v.x;
 			cache[ 1 ] = v.y;
-
 		}
-
 	} else {
-
 		if ( arraysEqual( cache, v ) ) return;
-
 		gl.uniform2fv( this.addr, v );
-
 		copyArray( cache, v );
-
 	}
-
 }
 
+/**
+ * 设置WebGL的uniform变量为3个浮点数的值
+ *
+ * @param gl WebGL渲染上下文
+ * @param v 浮点数对象或者包含浮点数的数组，如果是对象需要包含属性x,y,z或r,g,b
+ */
 function setValueV3f( gl, v ) {
-
 	const cache = this.cache;
-
 	if ( v.x !== undefined ) {
-
 		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z ) {
-
 			gl.uniform3f( this.addr, v.x, v.y, v.z );
-
 			cache[ 0 ] = v.x;
 			cache[ 1 ] = v.y;
 			cache[ 2 ] = v.z;
-
 		}
-
 	} else if ( v.r !== undefined ) {
-
 		if ( cache[ 0 ] !== v.r || cache[ 1 ] !== v.g || cache[ 2 ] !== v.b ) {
-
 			gl.uniform3f( this.addr, v.r, v.g, v.b );
-
 			cache[ 0 ] = v.r;
 			cache[ 1 ] = v.g;
 			cache[ 2 ] = v.b;
-
 		}
-
 	} else {
-
 		if ( arraysEqual( cache, v ) ) return;
-
 		gl.uniform3fv( this.addr, v );
-
 		copyArray( cache, v );
-
 	}
-
 }
 
+/**
+ * 设置WebGL的uniform变量为vec4类型的值
+ *
+ * @param gl WebGL渲染上下文
+ * @param v vec4类型的值，可以是一个包含x,y,z,w属性的对象或者是一个Float32Array类型的数组
+ * @returns 无返回值
+ */
 function setValueV4f( gl, v ) {
 
 	const cache = this.cache;
@@ -272,6 +277,13 @@ function setValueV4f( gl, v ) {
 
 // Single matrix (from flat array or THREE.MatrixN)
 
+/**
+ * 设置矩阵2的值
+ *
+ * @param gl WebGL上下文
+ * @param v 矩阵2的值，可以是数组或对象
+ * @returns 无返回值
+ */
 function setValueM2( gl, v ) {
 
 	const cache = this.cache;
@@ -299,6 +311,13 @@ function setValueM2( gl, v ) {
 
 }
 
+/**
+ * 设置矩阵值（3x3）
+ *
+ * @param gl WebGLRenderingContext 对象
+ * @param v 包含矩阵元素的数组或对象
+ * @returns 无返回值
+ */
 function setValueM3( gl, v ) {
 
 	const cache = this.cache;
@@ -326,6 +345,13 @@ function setValueM3( gl, v ) {
 
 }
 
+/**
+ * 设置矩阵值到 WebGL 上下文中的指定位置
+ *
+ * @param gl WebGL 渲染上下文
+ * @param v 矩阵值，可以是 Float32Array 类型或包含 elements 属性的对象
+ * @returns 无返回值
+ */
 function setValueM4( gl, v ) {
 
 	const cache = this.cache;
@@ -355,47 +381,49 @@ function setValueM4( gl, v ) {
 
 // Single integer / boolean
 
+/**
+ * 设置WebGL的uniform变量为1个整型/布尔的值
+ *
+ * @param gl WebGL渲染上下文
+ * @param v 需要设置的值
+ * @returns 无返回值
+ */
 function setValueV1i( gl, v ) {
-
 	const cache = this.cache;
-
 	if ( cache[ 0 ] === v ) return;
-
 	gl.uniform1i( this.addr, v );
-
 	cache[ 0 ] = v;
-
 }
 
 // Single integer / boolean vector (from flat array or THREE.VectorN)
-
+/**
+ * 设置WebGL的uniform变量为2个整型/布尔的值
+ *
+ * @param gl WebGL 渲染上下文
+ * @param v 要设置的 uniform 值，类型为对象或数组
+ * @returns 无返回值
+ */
 function setValueV2i( gl, v ) {
-
 	const cache = this.cache;
-
 	if ( v.x !== undefined ) {
-
 		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y ) {
-
 			gl.uniform2i( this.addr, v.x, v.y );
-
 			cache[ 0 ] = v.x;
 			cache[ 1 ] = v.y;
-
 		}
-
 	} else {
-
 		if ( arraysEqual( cache, v ) ) return;
-
 		gl.uniform2iv( this.addr, v );
-
 		copyArray( cache, v );
-
 	}
-
 }
 
+/**
+ * 设置 WebGL 着色器中的 3 个 int 类型的一致变量值
+ *
+ * @param gl WebGL 渲染上下文
+ * @param v 包含 x, y, z 属性的对象或 int 类型的数组
+ */
 function setValueV3i( gl, v ) {
 
 	const cache = this.cache;
@@ -556,85 +584,91 @@ function setValueV4ui( gl, v ) {
 
 // Single texture (2D / Cube)
 
+/**
+ * 设置纹理值T1
+ *
+ * @param gl WebGL渲染上下文
+ * @param v 纹理对象，默认为空纹理
+ * @param textures 纹理管理器对象
+ * @returns 无返回值
+ */
 function setValueT1( gl, v, textures ) {
-
 	const cache = this.cache;
 	const unit = textures.allocateTextureUnit();
-
 	if ( cache[ 0 ] !== unit ) {
-
 		gl.uniform1i( this.addr, unit );
 		cache[ 0 ] = unit;
-
 	}
-
 	let emptyTexture2D;
-
 	if ( this.type === gl.SAMPLER_2D_SHADOW ) {
-
 		emptyShadowTexture.compareFunction = LessEqualCompare; // #28670
 		emptyTexture2D = emptyShadowTexture;
-
 	} else {
-
 		emptyTexture2D = emptyTexture;
-
 	}
-
 	textures.setTexture2D( v || emptyTexture2D, unit );
-
 }
 
+/**
+ * 设置3D纹理值
+ *
+ * @param gl WebGL渲染上下文
+ * @param v 3D纹理数据，默认为空3D纹理
+ * @param textures 纹理管理器对象
+ */
 function setValueT3D1( gl, v, textures ) {
-
 	const cache = this.cache;
 	const unit = textures.allocateTextureUnit();
-
 	if ( cache[ 0 ] !== unit ) {
-
 		gl.uniform1i( this.addr, unit );
 		cache[ 0 ] = unit;
-
 	}
-
 	textures.setTexture3D( v || empty3dTexture, unit );
-
 }
 
+/**
+ * 设置纹理立方体的值
+ *
+ * @param gl WebGLRenderingContext 对象
+ * @param v 纹理立方体对象，默认为空纹理立方体
+ * @param textures 纹理管理器对象
+ */
 function setValueT6( gl, v, textures ) {
-
 	const cache = this.cache;
 	const unit = textures.allocateTextureUnit();
-
 	if ( cache[ 0 ] !== unit ) {
-
 		gl.uniform1i( this.addr, unit );
 		cache[ 0 ] = unit;
-
 	}
-
 	textures.setTextureCube( v || emptyCubeTexture, unit );
 
 }
 
+/**
+ * 设置二维纹理数组的值
+ *
+ * @param gl WebGL渲染上下文
+ * @param v 纹理数组值，默认为空纹理数组
+ * @param textures 纹理管理对象
+ */
 function setValueT2DArray1( gl, v, textures ) {
-
 	const cache = this.cache;
 	const unit = textures.allocateTextureUnit();
-
 	if ( cache[ 0 ] !== unit ) {
-
 		gl.uniform1i( this.addr, unit );
 		cache[ 0 ] = unit;
-
 	}
-
 	textures.setTexture2DArray( v || emptyArrayTexture, unit );
-
 }
 
 // Helper to pick the right setter for the singular case
 
+/**
+ * 根据类型获取单个属性的设置函数
+ *
+ * @param type 类型值
+ * @returns 返回对应的设置函数，若未找到则返回undefined
+ */
 function getSingularSetter( type ) {
 
 	switch ( type ) {
@@ -689,6 +723,12 @@ function getSingularSetter( type ) {
 
 // Array of scalars
 
+/**
+ * 设置WebGL中float类型一维数组的统一变量值
+ *
+ * @param gl WebGL上下文
+ * @param v float类型一维数组
+ */
 function setValueV1fArray( gl, v ) {
 
 	gl.uniform1fv( this.addr, v );
@@ -697,6 +737,12 @@ function setValueV1fArray( gl, v ) {
 
 // Array of vectors (from flat array or array of THREE.VectorN)
 
+/**
+ * 设置WebGL的2f数组类型的uniform变量值
+ *
+ * @param gl WebGL上下文
+ * @param v 待设置的2f数组
+ */
 function setValueV2fArray( gl, v ) {
 
 	const data = flatten( v, this.size, 2 );
@@ -749,6 +795,12 @@ function setValueM4Array( gl, v ) {
 
 // Array of integer / boolean
 
+/**
+ * 设置 gl.uniform1iv 的值
+ *
+ * @param gl WebGLRenderingContext 对象
+ * @param v Integer 数组
+ */
 function setValueV1iArray( gl, v ) {
 
 	gl.uniform1iv( this.addr, v );
@@ -1039,6 +1091,14 @@ function addUniform( container, uniformObject ) {
 
 }
 
+/**
+ * 解析uniform信息
+ *
+ * @param activeInfo active信息对象
+ * @param addr 地址
+ * @param container 容器对象
+ * @returns 无返回值
+ */
 function parseUniform( activeInfo, addr, container ) {
 
 	const path = activeInfo.name,

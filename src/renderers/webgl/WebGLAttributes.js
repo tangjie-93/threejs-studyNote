@@ -223,7 +223,6 @@ function WebGLAttributes( gl ) {
 			}
 			// 更新缓存数据对应的缓冲区
 			updateBuffer( data.buffer, attribute, bufferType );
-
 			// 更新缓存数据的版本号
 			data.version = attribute.version;
 		}

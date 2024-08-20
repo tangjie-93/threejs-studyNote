@@ -18,94 +18,75 @@ function WebGLObjects( gl, geometries, attributes, info ) {
 	 * @returns 返回更新后的BufferGeometry对象
 	 */
 	function update( object ) {
-
+		// 获取当前渲染帧
 		const frame = info.render.frame;
-
+		// 获取对象的几何体
 		const geometry = object.geometry;
+		// 从几何体缓存中获取对应的缓冲几何体 //实际上是buffergeometry = geometry
 		const buffergeometry = geometries.get( object, geometry );
-
+		// 每帧更新一次
 		// Update once per frame
-
 		if ( updateMap.get( buffergeometry ) !== frame ) {
-
+			// 更新缓冲几何体
+			// 实际上 更新的是geometry.attributes
 			geometries.update( buffergeometry );
-
+			// 更新缓冲几何体对应的帧
 			updateMap.set( buffergeometry, frame );
-
 		}
-
+		// 如果对象是实例化网格
 		if ( object.isInstancedMesh ) {
-
+			// 如果对象没有监听 'dispose' 事件，则添加监听器
 			if ( object.hasEventListener( 'dispose', onInstancedMeshDispose ) === false ) {
-
 				object.addEventListener( 'dispose', onInstancedMeshDispose );
-
 			}
-
+			// 如果对象对应的帧与当前帧不同
 			if ( updateMap.get( object ) !== frame ) {
-
+				// 更新对象的实例矩阵
 				attributes.update( object.instanceMatrix, gl.ARRAY_BUFFER );
-
+				// 如果对象的实例颜色不为空
 				if ( object.instanceColor !== null ) {
-
+					// 更新对象的实例颜色
 					attributes.update( object.instanceColor, gl.ARRAY_BUFFER );
-
 				}
-
+				// 更新对象对应的帧
 				updateMap.set( object, frame );
-
 			}
-
 		}
-
+		// 如果对象是蒙皮网格
 		if ( object.isSkinnedMesh ) {
-
+			// 获取对象的骨骼
 			const skeleton = object.skeleton;
-
+			// 如果骨骼对应的帧与当前帧不同
 			if ( updateMap.get( skeleton ) !== frame ) {
-
+				// 更新骨骼
 				skeleton.update();
-
+				// 更新骨骼对应的帧
 				updateMap.set( skeleton, frame );
-
 			}
-
 		}
-
+		// 返回缓冲几何体
 		return buffergeometry;
-
 	}
 
 	function dispose() {
-
 		updateMap = new WeakMap();
-
 	}
-
 	/**
 	 * 销毁实例网格时触发的回调函数
 	 *
 	 * @param event 事件对象
 	 */
 	function onInstancedMeshDispose( event ) {
-
 		const instancedMesh = event.target;
-
 		instancedMesh.removeEventListener( 'dispose', onInstancedMeshDispose );
-
+		// 主要调用 gl.deleteBuffer( data.buffer );删除WebGL缓冲区
 		attributes.remove( instancedMesh.instanceMatrix );
-
 		if ( instancedMesh.instanceColor !== null ) attributes.remove( instancedMesh.instanceColor );
-
 	}
-
 	return {
-
 		update: update,
 		dispose: dispose
-
 	};
-
 }
 
 

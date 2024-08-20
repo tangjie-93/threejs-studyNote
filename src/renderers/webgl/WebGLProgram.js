@@ -234,33 +234,34 @@ function generateDefines( defines ) {
  * - locationSize (Number)：属性的位置大小，默认为 1，如果属性是 mat2、mat3 或 mat4，则为 2、3 或 4。
  */
 function fetchAttributeLocations( gl, program ) {
-
 	const attributes = {};
-
+	// 获取程序中活动属性的数量
 	const n = gl.getProgramParameter( program, gl.ACTIVE_ATTRIBUTES );
-
 	for ( let i = 0; i < n; i ++ ) {
-
+		// 获取活动属性的信息
 		const info = gl.getActiveAttrib( program, i );
+		// 获取属性名称
 		const name = info.name;
 
 		let locationSize = 1;
+		// 根据属性类型设置位置大小
 		if ( info.type === gl.FLOAT_MAT2 ) locationSize = 2;
 		if ( info.type === gl.FLOAT_MAT3 ) locationSize = 3;
 		if ( info.type === gl.FLOAT_MAT4 ) locationSize = 4;
 
 		// console.log( 'THREE.WebGLProgram: ACTIVE VERTEX ATTRIBUTE:', name, i );
 
+		// 将属性信息保存到attributes对象中
 		attributes[ name ] = {
 			type: info.type,
+			// 获取属性的位置
 			location: gl.getAttribLocation( program, name ),
 			locationSize: locationSize
 		};
 
 	}
-
+	// 返回保存了属性信息的对象
 	return attributes;
-
 }
 
 /**
@@ -638,9 +639,6 @@ function generateCubeUVSize( parameters ) {
  * @returns {Object} WebGLProgram对象，包含了程序的相关信息和方法。
  */
 function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
-
-	// TODO Send this event to Three.js DevTools
-	// console.log( 'WebGLProgram', cacheKey );
 	// 获取webgl上下文
 	const gl = renderer.getContext();
 	// 自定义数据
@@ -1005,7 +1003,6 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 			'\n'
 
 		].filter( filterEmptyLine ).join( '\n' );
-
 	}
 	// 解析#include
 	vertexShader = resolveIncludes( vertexShader );
@@ -1068,16 +1065,12 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 
 	// Force a particular attribute to index 0.
 	if ( parameters.index0AttributeName !== undefined ) {
-
 		gl.bindAttribLocation( program, 0, parameters.index0AttributeName );
-
 	} else if ( parameters.morphTargets === true ) {
-
 		// programs with morphTargets displace position out of attribute 0
 		// 将 'position' 绑定到顶点属性位置 0
 		// 必须在调用 gl.linkProgram() 之前使用，否则不会生效
 		gl.bindAttribLocation( program, 0, 'position' );
-
 	}
 
 	gl.linkProgram( program );
@@ -1091,7 +1084,7 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 	function onFirstUse( self ) {
 
 		// check for link errors
-		// 是否应该检车shader编译错误
+		// 是否应该检测shader编译错误
 		if ( renderer.debug.checkShaderErrors ) {
 			// 获取日志信息
 			const programLog = gl.getProgramInfoLog( program ).trim();
@@ -1102,20 +1095,13 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 			let haveDiagnostics = true;
 			// 检查链接状态
 			if ( gl.getProgramParameter( program, gl.LINK_STATUS ) === false ) {
-
 				runnable = false;
-
 				if ( typeof renderer.debug.onShaderError === 'function' ) {
-
 					renderer.debug.onShaderError( gl, program, glVertexShader, glFragmentShader );
-
 				} else {
-
-					// default error reporting
 					// 打印错误日志
 					const vertexErrors = getShaderErrors( gl, glVertexShader, 'vertex' );
 					const fragmentErrors = getShaderErrors( gl, glFragmentShader, 'fragment' );
-
 					console.error(
 						'THREE.WebGLProgram: Shader Error ' + gl.getError() + ' - ' +
 						'VALIDATE_STATUS ' + gl.getProgramParameter( program, gl.VALIDATE_STATUS ) + '\n\n' +
@@ -1135,42 +1121,22 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 			} else if ( vertexLog === '' || fragmentLog === '' ) {
 
 				haveDiagnostics = false;
-
 			}
-
 			if ( haveDiagnostics ) {
-
 				self.diagnostics = {
-
 					runnable: runnable,
-
 					programLog: programLog,
-
 					vertexShader: {
-
 						log: vertexLog,
 						prefix: prefixVertex
-
 					},
-
 					fragmentShader: {
-
 						log: fragmentLog,
 						prefix: prefixFragment
-
 					}
-
 				};
-
 			}
-
 		}
-
-		// Clean up
-
-		// Crashes in iOS9 and iOS10. #18402
-		// gl.detachShader( program, glVertexShader );
-		// gl.detachShader( program, glFragmentShader );
 		// 用完就删除
 		gl.deleteShader( glVertexShader );
 		gl.deleteShader( glFragmentShader );
@@ -1202,44 +1168,30 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 	let cachedAttributes;
 
 	this.getAttributes = function () {
-
 		if ( cachedAttributes === undefined ) {
-
 			// Populates cachedAttributes and cachedUniforms
 			onFirstUse( this );
-
 		}
-
 		return cachedAttributes;
-
 	};
 
 	// indicate when the program is ready to be used. if the KHR_parallel_shader_compile extension isn't supported,
 	// flag the program as ready immediately. It may cause a stall when it's first used.
 
 	let programReady = ( parameters.rendererExtensionParallelShaderCompile === false );
-
+	// 判断program是否准备好使用了
 	this.isReady = function () {
-
 		if ( programReady === false ) {
-
 			programReady = gl.getProgramParameter( program, COMPLETION_STATUS_KHR );
-
 		}
-
 		return programReady;
-
 	};
 
-	// free resource
-
+	// 资源释放
 	this.destroy = function () {
-
 		bindingStates.releaseStatesOfProgram( this );
-
 		gl.deleteProgram( program );
 		this.program = undefined;
-
 	};
 	
 	this.type = parameters.shaderType;
