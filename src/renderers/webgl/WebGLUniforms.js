@@ -957,6 +957,12 @@ function setValueT2DArrayArray( gl, v, textures ) {
 
 // Helper to pick the right setter for a pure (bottom-level) array
 
+/**
+ * 根据类型获取纯数组设置器函数
+ *
+ * @param type 类型
+ * @returns 对应的纯数组设置器函数
+ */
 function getPureArraySetter( type ) {
 
 	switch ( type ) {
@@ -1044,29 +1050,18 @@ class PureArrayUniform {
 }
 
 class StructuredUniform {
-
 	constructor( id ) {
-
 		this.id = id;
-
 		this.seq = [];
 		this.map = {};
-
 	}
-
 	setValue( gl, value, textures ) {
-
 		const seq = this.seq;
-
 		for ( let i = 0, n = seq.length; i !== n; ++ i ) {
-
 			const u = seq[ i ];
 			u.setValue( gl, value[ u.id ], textures );
-
 		}
-
 	}
-
 }
 
 // --- Top-level ---
@@ -1084,11 +1079,15 @@ const RePathPart = /(\w+)(\])?(\[|\.)?/g;
 // allow straightforward parsing of the hierarchy that WebGL encodes
 // in the uniform names.
 
+/**
+ * 向容器中添加uniform对象
+ *
+ * @param container 容器对象，包含seq数组和map对象
+ * @param uniformObject 要添加的uniform对象
+ */
 function addUniform( container, uniformObject ) {
-
 	container.seq.push( uniformObject );
 	container.map[ uniformObject.id ] = uniformObject;
-
 }
 
 /**
@@ -1100,28 +1099,19 @@ function addUniform( container, uniformObject ) {
  * @returns 无返回值
  */
 function parseUniform( activeInfo, addr, container ) {
-
 	const path = activeInfo.name,
 		pathLength = path.length;
-
-	// reset RegExp object, because of the early exit of a previous run
+	// 重置RegExp对象，因为之前的运行可能提前退出了
 	RePathPart.lastIndex = 0;
-
 	while ( true ) {
-
 		const match = RePathPart.exec( path ),
 			matchEnd = RePathPart.lastIndex;
-
 		let id = match[ 1 ];
 		const idIsIndex = match[ 2 ] === ']',
 			subscript = match[ 3 ];
-
-		if ( idIsIndex ) id = id | 0; // convert to integer
-
+		if ( idIsIndex ) id = id | 0; // 转换为整数
 		if ( subscript === undefined || subscript === '[' && matchEnd + 2 === pathLength ) {
-
-			// bare name or "pure" bottom-level array "[0]" suffix
-
+			// 裸名或纯底层数组 "[0]" 后缀
 			addUniform( container, subscript === undefined ?
 				new SingleUniform( id, activeInfo, addr ) :
 				new PureArrayUniform( id, activeInfo, addr ) );
@@ -1129,25 +1119,16 @@ function parseUniform( activeInfo, addr, container ) {
 			break;
 
 		} else {
-
-			// step into inner node / create it in case it doesn't exist
-
+			// 进入内部节点/如果不存在则创建它
 			const map = container.map;
 			let next = map[ id ];
-
 			if ( next === undefined ) {
-
 				next = new StructuredUniform( id );
 				addUniform( container, next );
-
 			}
-
 			container = next;
-
 		}
-
 	}
-
 }
 
 // Root Container
@@ -1186,6 +1167,13 @@ class WebGLUniforms {
 
 	}
 
+	/**
+	 * 设置可选属性
+	 *
+	 * @param gl WebGL上下文对象
+	 * @param object 包含属性的对象
+	 * @param name 属性名
+	 */
 	setOptional( gl, object, name ) {
 
 		const v = object[ name ];
@@ -1194,39 +1182,43 @@ class WebGLUniforms {
 
 	}
 
+	/**
+	 * 上传数据
+	 *
+	 * @param gl WebGLRenderingContext 上下文对象
+	 * @param seq 包含上传序列的数组
+	 * @param values 包含数据值的对象数组
+	 * @param textures 纹理对象数组
+	 * @returns 无返回值
+	 */
 	static upload( gl, seq, values, textures ) {
-
+		// 遍历序列数组
 		for ( let i = 0, n = seq.length; i !== n; ++ i ) {
-
+			// 获取当前序列和对应的值
 			const u = seq[ i ],
 				v = values[ u.id ];
-
+			// 如果值需要更新
 			if ( v.needsUpdate !== false ) {
-
-				// note: always updating when .needsUpdate is undefined
+				// 注意：当 .needsUpdate 未定义时，总是进行更新
+				// 设置值到序列中
 				u.setValue( gl, v.value, textures );
-
 			}
-
 		}
-
 	}
-
+	/**
+	 * 根据给定的序列和值数组，返回序列中所有id存在于值数组中的元素所组成的数组
+	 *
+	 * @param seq 给定的序列
+	 * @param values 值数组
+	 * @returns 序列中所有id存在于值数组中的元素所组成的数组
+	 */
 	static seqWithValue( seq, values ) {
-
 		const r = [];
-
 		for ( let i = 0, n = seq.length; i !== n; ++ i ) {
-
 			const u = seq[ i ];
 			if ( u.id in values ) r.push( u );
-
 		}
-
 		return r;
-
 	}
-
 }
-
 export { WebGLUniforms };

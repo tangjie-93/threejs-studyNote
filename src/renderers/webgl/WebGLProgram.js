@@ -248,9 +248,6 @@ function fetchAttributeLocations( gl, program ) {
 		if ( info.type === gl.FLOAT_MAT2 ) locationSize = 2;
 		if ( info.type === gl.FLOAT_MAT3 ) locationSize = 3;
 		if ( info.type === gl.FLOAT_MAT4 ) locationSize = 4;
-
-		// console.log( 'THREE.WebGLProgram: ACTIVE VERTEX ATTRIBUTE:', name, i );
-
 		// 将属性信息保存到attributes对象中
 		attributes[ name ] = {
 			type: info.type,
@@ -258,7 +255,6 @@ function fetchAttributeLocations( gl, program ) {
 			location: gl.getAttribLocation( program, name ),
 			locationSize: locationSize
 		};
-
 	}
 	// 返回保存了属性信息的对象
 	return attributes;
@@ -391,6 +387,12 @@ function includeReplacer( match, include ) {
 
 const unrollLoopPattern = /#pragma unroll_loop_start\s+for\s*\(\s*int\s+i\s*=\s*(\d+)\s*;\s*i\s*<\s*(\d+)\s*;\s*i\s*\+\+\s*\)\s*{([\s\S]+?)}\s+#pragma unroll_loop_end/g;
 
+/**
+ * 展开循环
+ *
+ * @param string 要处理的字符串
+ * @returns 展开循环后的字符串
+ */
 function unrollLoops( string ) {
 
 	return string.replace( unrollLoopPattern, loopReplacer );
@@ -1082,7 +1084,6 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 	 * @returns 无返回值
 	 */
 	function onFirstUse( self ) {
-
 		// check for link errors
 		// 是否应该检测shader编译错误
 		if ( renderer.debug.checkShaderErrors ) {
@@ -1143,30 +1144,20 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 
 		cachedUniforms = new WebGLUniforms( gl, program );
 		cachedAttributes = fetchAttributeLocations( gl, program );
-
 	}
-
 	// set up caching for uniform locations
-
 	let cachedUniforms;
-
 	this.getUniforms = function () {
-
 		if ( cachedUniforms === undefined ) {
-
 			// Populates cachedUniforms and cachedAttributes
 			onFirstUse( this );
-
 		}
-
 		return cachedUniforms;
-
 	};
 
 	// set up caching for attribute locations
 
 	let cachedAttributes;
-
 	this.getAttributes = function () {
 		if ( cachedAttributes === undefined ) {
 			// Populates cachedAttributes and cachedUniforms
