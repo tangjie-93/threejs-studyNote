@@ -297,7 +297,7 @@ class WebGLRenderer {
 			extensions = new WebGLExtensions(_gl);
 			extensions.init();
 
-			// 初始化 WebGL 实用工具
+			// 初始化 WebGL 实用工具 convert根据传入类型返回gl类型
 			utils = new WebGLUtils(_gl, extensions);
 
 			// 初始化 WebGL 上下文的相关能力
@@ -308,10 +308,10 @@ class WebGLRenderer {
 
 			// 初始化 WebGL 信息 如调用次数、点线面的数量，几何图形的数量，纹理的数量
 			info = new WebGLInfo(_gl);
-			// 初始化 WebGL 属性
+			// 初始化 WebGL 属性 用于管理WebGL对象的属性 包括get,remove,update和dispose方法
 			properties = new WebGLProperties();
 
-			// 初始化 WebGL 纹理
+			// 初始化 WebGL 纹理 设置和处理纹理的一些方法
 			textures = new WebGLTextures(_gl, extensions, state, properties, capabilities, utils, info);
 			// 初始化 WebGL 立方体纹理
 			cubemaps = new WebGLCubeMaps(_this);
@@ -1241,9 +1241,9 @@ class WebGLRenderer {
 			currentRenderState.init(camera);
 
 			renderStateStack.push(currentRenderState);
-			// 根据相机投影矩阵和逆世界矩阵计算投影屏幕矩阵
+			// 根据相机投影矩阵和逆世界矩阵计算视图投影矩阵
 			_projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-			// 根据投影屏幕矩阵设置视锥体
+			// 根据视图投影矩阵设置视锥体
 			_frustum.setFromProjectionMatrix(_projScreenMatrix);
 			// 初始化裁剪功能（如果启用）
 			_localClippingEnabled = this.localClippingEnabled;
