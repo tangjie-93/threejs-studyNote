@@ -285,11 +285,12 @@ class PerspectiveCamera extends Camera {
 		// 如果镜头偏移量不为0，根据偏移量和胶片宽度调整左边边界
 		if ( skew !== 0 ) left += near * skew / this.getFilmWidth();
 
-		// 设置透视投影矩阵
+		// 设置透视投影矩阵 投影矩阵用于将3D的相机坐标转换为2D的屏幕坐标
 		this.projectionMatrix.makePerspective( left, left + width, top, top - height, near, this.far, this.coordinateSystem );
 
 		// 复制透视投影矩阵并求逆 得到相机空间中的坐标矩阵
 		// 对透视投影矩阵求逆得到的是一个矩阵，它可以将标准化设备坐标（或裁剪空间）中的坐标转换回视图空间（或相机空间）中的坐标
+		// 逆投影矩阵用于将2D的屏幕坐标转换回3D的相机坐标
 		this.projectionMatrixInverse.copy( this.projectionMatrix ).invert();
 
 	}
