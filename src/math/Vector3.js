@@ -338,6 +338,12 @@ class Vector3 {
 
 	}
 
+	/**
+	 * 返回当前向量与给定向量v在x, y, z三个方向上较小值的向量
+	 *
+	 * @param v 给定向量
+	 * @returns 返回当前向量与给定向量v在x, y, z三个方向上较小值的向量
+	 */
 	min( v ) {
 
 		this.x = Math.min( this.x, v.x );
@@ -443,8 +449,14 @@ class Vector3 {
 
 	}
 
+	/**
+	 * 计算向量点积
+	 *
+	 * @param v 向量对象
+	 * @returns 返回点积结果
+	 */
 	dot( v ) {
-
+		// a⋅b=|a||*||b||*cosθ 
 		return this.x * v.x + this.y * v.y + this.z * v.z;
 
 	}
@@ -758,6 +770,13 @@ class Vector3 {
 
 	}
 
+	/**
+	 * 从BufferAttribute中读取指定索引的属性值，并设置到当前对象的x、y、z属性上
+	 *
+	 * @param attribute 要读取的BufferAttribute对象
+	 * @param index 要读取的索引值
+	 * @returns 返回当前对象，以便进行链式调用
+	 */
 	fromBufferAttribute( attribute, index ) {
 
 		this.x = attribute.getX( index );

@@ -13467,7 +13467,7 @@ class Camera extends Object3D {
 		this.isCamera = true;
 
 		this.type = 'Camera';
-
+		// 这是matrixWorld矩阵的逆矩阵，用于将世界坐标系中的点转换为相机坐标系下的点。
 		this.matrixWorldInverse = new Matrix4();
 
 		this.projectionMatrix = new Matrix4();
@@ -13498,14 +13498,28 @@ class Camera extends Object3D {
 
 	}
 
+	/**
+	 * 更新对象的世界矩阵
+	 *
+	 * @param force 是否强制更新，默认为 false
+	 * @returns 无返回值
+	 */
 	updateMatrixWorld( force ) {
 
+		// 调用父类的 updateMatrixWorld 方法
 		super.updateMatrixWorld( force );
 
+		// 这是matrixWorld矩阵的逆矩阵，用于将世界坐标系中的点转换回对象的本地坐标系
 		this.matrixWorldInverse.copy( this.matrixWorld ).invert();
 
 	}
 
+	/**
+	 * 更新世界矩阵
+	 *
+	 * @param updateParents 是否更新父对象
+	 * @param updateChildren 是否更新子对象
+	 */
 	updateWorldMatrix( updateParents, updateChildren ) {
 
 		super.updateWorldMatrix( updateParents, updateChildren );
@@ -13804,11 +13818,12 @@ class PerspectiveCamera extends Camera {
 		// 如果镜头偏移量不为0，根据偏移量和胶片宽度调整左边边界
 		if ( skew !== 0 ) left += near * skew / this.getFilmWidth();
 
-		// 设置透视投影矩阵
+		// 设置透视投影矩阵 投影矩阵用于将3D的相机坐标转换为2D的屏幕坐标
 		this.projectionMatrix.makePerspective( left, left + width, top, top - height, near, this.far, this.coordinateSystem );
 
 		// 复制透视投影矩阵并求逆 得到相机空间中的坐标矩阵
 		// 对透视投影矩阵求逆得到的是一个矩阵，它可以将标准化设备坐标（或裁剪空间）中的坐标转换回视图空间（或相机空间）中的坐标
+		// 逆投影矩阵用于将2D的屏幕坐标转换回3D的相机坐标
 		this.projectionMatrixInverse.copy( this.projectionMatrix ).invert();
 
 	}
@@ -31005,7 +31020,7 @@ class WebGLRenderer {
 			extensions = new WebGLExtensions(_gl);
 			extensions.init();
 
-			// 初始化 WebGL 实用工具
+			// 初始化 WebGL 实用工具 convert根据传入类型返回gl类型
 			utils = new WebGLUtils(_gl, extensions);
 
 			// 初始化 WebGL 上下文的相关能力
@@ -31016,10 +31031,10 @@ class WebGLRenderer {
 
 			// 初始化 WebGL 信息 如调用次数、点线面的数量，几何图形的数量，纹理的数量
 			info = new WebGLInfo(_gl);
-			// 初始化 WebGL 属性
+			// 初始化 WebGL 属性 用于管理WebGL对象的属性 包括get,remove,update和dispose方法
 			properties = new WebGLProperties();
 
-			// 初始化 WebGL 纹理
+			// 初始化 WebGL 纹理 设置和处理纹理的一些方法
 			textures = new WebGLTextures(_gl, extensions, state, properties, capabilities, utils, info);
 			// 初始化 WebGL 立方体纹理
 			cubemaps = new WebGLCubeMaps(_this);
@@ -31949,9 +31964,9 @@ class WebGLRenderer {
 			currentRenderState.init(camera);
 
 			renderStateStack.push(currentRenderState);
-			// 根据相机投影矩阵和逆世界矩阵计算投影屏幕矩阵
+			// 根据相机投影矩阵和逆世界矩阵计算视图投影矩阵
 			_projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-			// 根据投影屏幕矩阵设置视锥体
+			// 根据视图投影矩阵设置视锥体
 			_frustum.setFromProjectionMatrix(_projScreenMatrix);
 			// 初始化裁剪功能（如果启用）
 			_localClippingEnabled = this.localClippingEnabled;

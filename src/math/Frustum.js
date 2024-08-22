@@ -125,25 +125,24 @@ class Frustum {
      * 判断球与指定的THREE.Object3D对象是否相交。如果对象没有绑定半径，会先计算其包围球并应用世界变换。
      */
 	intersectsObject( object ) {
-
+		// 如果对象有边界球体
 		if ( object.boundingSphere !== undefined ) {
-
+			// 如果边界球体为空，则计算边界球体
 			if ( object.boundingSphere === null ) object.computeBoundingSphere();
-
+			// 复制对象的边界球体，并应用对象的世界矩阵
 			_sphere.copy( object.boundingSphere ).applyMatrix4( object.matrixWorld );
-
+		// 如果对象没有边界球体
 		} else {
-
+			// 获取对象的几何体
 			const geometry = object.geometry;
-
+			// 如果几何体的边界球体为空，则计算边界球体
 			if ( geometry.boundingSphere === null ) geometry.computeBoundingSphere();
-
+			// 复制几何体的边界球体，并应用对象的世界矩阵 
+			// 应用矩阵主要是更新中心点和半径
 			_sphere.copy( geometry.boundingSphere ).applyMatrix4( object.matrixWorld );
-
 		}
-
+		// 判断当前对象是否与边界球体相交
 		return this.intersectsSphere( _sphere );
-
 	}
 
     /**
@@ -162,33 +161,25 @@ class Frustum {
 
 	}
 
-    /**
-     * @method intersectsSphere
-     * @param {THREE.Sphere} sphere
-     * @returns {boolean} True if the frustum intersects the given sphere, otherwise false.
-     * @description
-     * Checks whether the frustum intersects with a given sphere.
-     */
+	/**
+	 * 判断当前对象是否与球体相交
+	 *
+	 * @param sphere 球体对象，包含center（中心点）和radius（半径）属性
+	 * @returns 返回布尔值，表示当前对象是否与球体相交
+	 */
 	intersectsSphere( sphere ) {
 
 		const planes = this.planes;
 		const center = sphere.center;
 		const negRadius = - sphere.radius;
-
 		for ( let i = 0; i < 6; i ++ ) {
-
+			//计算面到点的距离
 			const distance = planes[ i ].distanceToPoint( center );
-
 			if ( distance < negRadius ) {
-
 				return false;
-
 			}
-
 		}
-
 		return true;
-
 	}
 
     /**

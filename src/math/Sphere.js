@@ -143,13 +143,18 @@ class Sphere {
 
 	}
 
+	/**
+	 * 应用 4x4 矩阵变换。
+	 *
+	 * @param matrix 4x4 矩阵。
+	 * @returns 返回当前对象。
+	 */
 	applyMatrix4( matrix ) {
-
+		// 应用矩阵到中心点
 		this.center.applyMatrix4( matrix );
+		// 根据矩阵的最大缩放比例调整半径
 		this.radius = this.radius * matrix.getMaxScaleOnAxis();
-
 		return this;
-
 	}
 
 	translate( offset ) {

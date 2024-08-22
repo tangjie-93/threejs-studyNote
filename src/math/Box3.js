@@ -34,6 +34,12 @@ class Box3 {
 
 	}
 
+	/**
+	 * 从BufferAttribute设置几何体
+	 *
+	 * @param attribute BufferAttribute 类型的参数
+	 * @returns 返回几何体本身
+	 */
 	setFromBufferAttribute( attribute ) {
 
 		this.makeEmpty();
@@ -113,18 +119,37 @@ class Box3 {
 
 	}
 
+	/**
+	 * 获取三维盒子的中心点
+	 *
+	 * @param target 目标向量，用于存储计算得到的中心点
+	 * @returns 返回目标向量，包含计算得到的中心点坐标
+	 */
 	getCenter( target ) {
 
-		return this.isEmpty() ? target.set( 0, 0, 0 ) : target.addVectors( this.min, this.max ).multiplyScalar( 0.5 );
-
+		// 如果为空，则设置目标向量的值为 (0, 0, 0)
+		return this.isEmpty() ? target.set( 0, 0, 0 ) :
+			// 否则，计算最小向量和最大向量的和，然后乘以0.5，将结果赋值给目标向量
+			target.addVectors( this.min, this.max ).multiplyScalar( 0.5 );
 	}
 
 	getSize( target ) {
 
-		return this.isEmpty() ? target.set( 0, 0, 0 ) : target.subVectors( this.max, this.min );
+		// 判断当前对象是否为空
+		return this.isEmpty() ?
+			// 如果为空，则将目标向量的x、y、z坐标都设置为0
+			target.set( 0, 0, 0 ) :
+			// 如果不为空，则计算最大向量和最小向量的差值，并将结果赋值给目标向量
+			target.subVectors( this.max, this.min );
 
 	}
 
+	/**
+	 * 根据给定的点扩展边界
+	 *
+	 * @param point 给定的点
+	 * @returns 返回当前对象
+	 */
 	expandByPoint( point ) {
 
 		this.min.min( point );
@@ -134,6 +159,12 @@ class Box3 {
 
 	}
 
+	/**
+	 * 根据向量扩展边界
+	 *
+	 * @param vector 向量对象
+	 * @returns 返回当前边界对象
+	 */
 	expandByVector( vector ) {
 
 		this.min.sub( vector );

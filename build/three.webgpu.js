@@ -13398,7 +13398,7 @@ class Camera extends Object3D {
 		this.isCamera = true;
 
 		this.type = 'Camera';
-
+		// 这是matrixWorld矩阵的逆矩阵，用于将世界坐标系中的点转换为相机坐标系下的点。
 		this.matrixWorldInverse = new Matrix4();
 
 		this.projectionMatrix = new Matrix4();
@@ -13429,14 +13429,28 @@ class Camera extends Object3D {
 
 	}
 
+	/**
+	 * 更新对象的世界矩阵
+	 *
+	 * @param force 是否强制更新，默认为 false
+	 * @returns 无返回值
+	 */
 	updateMatrixWorld( force ) {
 
+		// 调用父类的 updateMatrixWorld 方法
 		super.updateMatrixWorld( force );
 
+		// 这是matrixWorld矩阵的逆矩阵，用于将世界坐标系中的点转换回对象的本地坐标系
 		this.matrixWorldInverse.copy( this.matrixWorld ).invert();
 
 	}
 
+	/**
+	 * 更新世界矩阵
+	 *
+	 * @param updateParents 是否更新父对象
+	 * @param updateChildren 是否更新子对象
+	 */
 	updateWorldMatrix( updateParents, updateChildren ) {
 
 		super.updateWorldMatrix( updateParents, updateChildren );
@@ -13735,11 +13749,12 @@ class PerspectiveCamera extends Camera {
 		// 如果镜头偏移量不为0，根据偏移量和胶片宽度调整左边边界
 		if ( skew !== 0 ) left += near * skew / this.getFilmWidth();
 
-		// 设置透视投影矩阵
+		// 设置透视投影矩阵 投影矩阵用于将3D的相机坐标转换为2D的屏幕坐标
 		this.projectionMatrix.makePerspective( left, left + width, top, top - height, near, this.far, this.coordinateSystem );
 
 		// 复制透视投影矩阵并求逆 得到相机空间中的坐标矩阵
 		// 对透视投影矩阵求逆得到的是一个矩阵，它可以将标准化设备坐标（或裁剪空间）中的坐标转换回视图空间（或相机空间）中的坐标
+		// 逆投影矩阵用于将2D的屏幕坐标转换回3D的相机坐标
 		this.projectionMatrixInverse.copy( this.projectionMatrix ).invert();
 
 	}

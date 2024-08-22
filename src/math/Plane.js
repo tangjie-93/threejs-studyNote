@@ -100,8 +100,18 @@ class Plane {
 
 	}
 
+	/**
+	 * 计算点到平面的距离
+	 *
+	 * @param point 点坐标
+	 * @returns 返回点到平面的距离
+	 */
 	distanceToPoint( point ) {
 
+		// 计算点与平面之间的距离
+		//  a⋅b=|a||*||b||*cosθ 
+		// 本质上是计算一个向量在另一个向量上的投影长度
+		// 投影长度= (a*b)/|a| 当a是单位向量时，就可以简化为投影长度= (a*b)
 		return this.normal.dot( point ) + this.constant;
 
 	}

@@ -47,42 +47,63 @@ function WebGLBackground( renderer, cubemaps, cubeuvmaps, state, objects, alpha,
 
 	}
 
+	/**
+	 * 渲染场景
+	 *
+	 * @param scene 要渲染的场景
+	 * @returns 无返回值
+	 */
 	function render( scene ) {
 
+		// 是否强制清除颜色缓冲
 		let forceClear = false;
+
+		// 获取场景的背景
 		const background = getBackground( scene );
 
+		// 如果背景为空
 		if ( background === null ) {
 
+			// 设置清除颜色和透明度
 			setClear( clearColor, clearAlpha );
 
+		// 如果背景存在且是颜色类型
 		} else if ( background && background.isColor ) {
 
+			// 设置清除颜色为背景颜色，透明度为1
 			setClear( background, 1 );
+			// 设置强制清除颜色缓冲
 			forceClear = true;
 
 		}
 
+		// 获取环境混合模式
 		const environmentBlendMode = renderer.xr.getEnvironmentBlendMode();
 
+		// 如果环境混合模式为加法混合
 		if ( environmentBlendMode === 'additive' ) {
 
+			// 设置颜色缓冲的清除颜色为黑色，透明度为1，是否预乘alpha
 			state.buffers.color.setClear( 0, 0, 0, 1, premultipliedAlpha );
 
+		// 如果环境混合模式为Alpha混合
 		} else if ( environmentBlendMode === 'alpha-blend' ) {
 
+			// 设置颜色缓冲的清除颜色为黑色，透明度为0，是否预乘alpha
 			state.buffers.color.setClear( 0, 0, 0, 0, premultipliedAlpha );
 
 		}
 
+		// 如果需要自动清除或者强制清除
 		if ( renderer.autoClear || forceClear ) {
 
+			// 缓冲可能不可写，这是确保正确清除所必需的
 			// buffers might not be writable which is required to ensure a correct clear
-
 			state.buffers.depth.setTest( true );
 			state.buffers.depth.setMask( true );
 			state.buffers.color.setMask( true );
 
+			// 清除颜色、深度和模板缓冲
 			renderer.clear( renderer.autoClearColor, renderer.autoClearDepth, renderer.autoClearStencil );
 
 		}

@@ -609,7 +609,7 @@ class WebGLRenderer {
 			background.setClearAlpha.apply(background, arguments);
 
 		};
-
+		//清楚深度、颜色和模板缓冲区
 		this.clear = function (color = true, depth = true, stencil = true) {
 
 			let bits = 0;
@@ -839,6 +839,12 @@ class WebGLRenderer {
 		 */
 		this.renderBufferDirect = function (camera, scene, geometry, material, object, group) {
 			if (scene === null) scene = _emptyScene; // renderBufferDirect second parameter used to be fog (could be null)
+			/***
+			 * 在几何变换中，行列式提供了一些重要信息：
+				1.如果行列式为 1，表示变换是等比例的，没有改变对象的体积。
+				2.如果行列式为 0，表示变换引入了某种“退化”（例如将三维对象压缩到二维平面），可能导致体积为零。
+				3.如果行列式为 负值，表示变换包含反射（比如镜像操作）。
+			 */
 			const frontFaceCW = (object.isMesh && object.matrixWorld.determinant() < 0);
 			// 确定program
 			const program = setProgram(camera, scene, geometry, material, object);
@@ -879,9 +885,7 @@ class WebGLRenderer {
 			const drawCount = drawEnd - drawStart;
 
 			if (drawCount < 0 || drawCount === Infinity) return;
-
-			//
-
+			//初始化渲染状态
 			bindingStates.setup(object, material, program, geometry, index);
 
 			let attribute;
@@ -1062,7 +1066,7 @@ class WebGLRenderer {
 				});
 
 			}
-
+			//初始化光照
 			currentRenderState.setupLights();
 
 			// Only initialize materials in the new scene, not the targetScene.
@@ -1303,7 +1307,7 @@ class WebGLRenderer {
 			// 渲染场景
 			const opaqueObjects = currentRenderList.opaque;
 			const transmissiveObjects = currentRenderList.transmissive;
-
+			// 初始化光照
 			currentRenderState.setupLights();
 			// 根据相机类型渲染场景
 			if (camera.isArrayCamera) {
@@ -1337,7 +1341,7 @@ class WebGLRenderer {
 				if (transmissiveObjects.length > 0) renderTransmissionPass(opaqueObjects, transmissiveObjects, scene, camera);
 
 				if (_renderBackground) background.render(scene);
-
+				//渲染场景中的对象
 				renderScene(currentRenderList, scene, camera);
 
 			}
@@ -1441,7 +1445,7 @@ class WebGLRenderer {
 						const material = object.material;
 						// 材质是否可见
 						if (material.visible) {
-
+							// 在这里根据材质是否透明来将物体分组
 							currentRenderList.push(object, geometry, material, groupOrder, _vector4.z, null);
 
 						}
@@ -1493,7 +1497,7 @@ class WebGLRenderer {
 							}
 
 						} else if (material.visible) {
-
+							// 在这里根据材质是否透明来将物体分组
 							currentRenderList.push(object, geometry, material, groupOrder, _vector4.z, null);
 
 						}
@@ -1527,7 +1531,7 @@ class WebGLRenderer {
 			const opaqueObjects = currentRenderList.opaque;
 			const transmissiveObjects = currentRenderList.transmissive;
 			const transparentObjects = currentRenderList.transparent;
-
+			//启用光源
 			currentRenderState.setupLightsView(camera);
 
 			if (_clippingEnabled === true) clipping.setGlobalState(_this.clippingPlanes, camera);
@@ -1915,11 +1919,11 @@ class WebGLRenderer {
 			materialProperties.toneMapping = parameters.toneMapping;
 
 		}
-
+		//使用对应的program进行下面的渲染
 		function setProgram(camera, scene, geometry, material, object) {
 
 			if (scene.isScene !== true) scene = _emptyScene; // scene could be a Mesh, Line, Points, ...
-
+			//重置纹理单元为0
 			textures.resetTextureUnits();
 
 			const fog = scene.fog;
@@ -1946,7 +1950,7 @@ class WebGLRenderer {
 
 			const morphAttribute = geometry.morphAttributes.position || geometry.morphAttributes.normal || geometry.morphAttributes.color;
 			const morphTargetsCount = (morphAttribute !== undefined) ? morphAttribute.length : 0;
-
+			//在什么地方设置的？
 			const materialProperties = properties.get(material);
 			const lights = currentRenderState.state.lights;
 
@@ -1966,11 +1970,8 @@ class WebGLRenderer {
 				}
 
 			}
-
-			//
-
+			// 判断是否需要更新program
 			let needsProgramChange = false;
-
 			if (material.version === materialProperties.__version) {
 
 				if (materialProperties.needsLights && (materialProperties.lightsStateVersion !== lights.state.version)) {
@@ -2080,8 +2081,6 @@ class WebGLRenderer {
 
 			}
 
-			//
-
 			let program = materialProperties.currentProgram;
 
 			if (needsProgramChange === true) {
@@ -2096,7 +2095,7 @@ class WebGLRenderer {
 
 			const p_uniforms = program.getUniforms(),
 				m_uniforms = materialProperties.uniforms;
-
+			//判断是否需要更新调用gl.useProgram(program)
 			if (state.useProgram(program.program)) {
 
 				refreshProgram = true;
@@ -2104,63 +2103,47 @@ class WebGLRenderer {
 				refreshLights = true;
 
 			}
-
+			//判断是否需要更新材质
 			if (material.id !== _currentMaterialId) {
-
 				_currentMaterialId = material.id;
-
 				refreshMaterial = true;
-
 			}
-
+			//判断program和camera是否跟上次的一样
 			if (refreshProgram || _currentCamera !== camera) {
-
+				//设置相机相关矩阵(投影矩阵和视图矩阵)
 				// common camera uniforms
-
 				p_uniforms.setValue(_gl, 'projectionMatrix', camera.projectionMatrix);
 				p_uniforms.setValue(_gl, 'viewMatrix', camera.matrixWorldInverse);
-
+				//相机位置
 				const uCamPos = p_uniforms.map.cameraPosition;
-
 				if (uCamPos !== undefined) {
-
 					uCamPos.setValue(_gl, _vector3.setFromMatrixPosition(camera.matrixWorld));
-
 				}
 
 				if (capabilities.logarithmicDepthBuffer) {
-
 					p_uniforms.setValue(_gl, 'logDepthBufFC',
 						2.0 / (Math.log(camera.far + 1.0) / Math.LN2));
-
 				}
-
 				// consider moving isOrthographic to UniformLib and WebGLMaterials, see https://github.com/mrdoob/three.js/pull/26467#issuecomment-1645185067
-
 				if (material.isMeshPhongMaterial ||
 					material.isMeshToonMaterial ||
 					material.isMeshLambertMaterial ||
 					material.isMeshBasicMaterial ||
 					material.isMeshStandardMaterial ||
 					material.isShaderMaterial) {
-
+					//判断是否是正交投影
 					p_uniforms.setValue(_gl, 'isOrthographic', camera.isOrthographicCamera === true);
 
 				}
-
+				//判断当前相机跟正在使用的相机是否一样
 				if (_currentCamera !== camera) {
-
 					_currentCamera = camera;
-
 					// lighting uniforms depend on the camera so enforce an update
 					// now, in case this material supports lights - or later, when
 					// the next material that does gets activated:
-
 					refreshMaterial = true;		// set to true on material change
 					refreshLights = true;		// remains set until update done
-
 				}
-
 			}
 
 			// skinning and morph target uniforms must be set even if material didn't change

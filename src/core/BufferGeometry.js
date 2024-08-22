@@ -337,70 +337,70 @@ class BufferGeometry extends EventDispatcher {
 	 */
 	computeBoundingBox() {
 
+		// 如果边界框为空，则创建一个新的边界框对象
 		if ( this.boundingBox === null ) {
-
 			this.boundingBox = new Box3();
-
 		}
 
+		// 获取位置属性
 		const position = this.attributes.position;
+		// 获取变形属性中的位置属性
 		const morphAttributesPosition = this.morphAttributes.position;
 
+		// 如果位置属性存在且是GLBufferAttribute类型
 		if ( position && position.isGLBufferAttribute ) {
-
 			console.error( 'THREE.BufferGeometry.computeBoundingBox(): GLBufferAttribute requires a manual bounding box.', this );
 
+			// 将边界框设置为无限大
 			this.boundingBox.set(
 				new Vector3( - Infinity, - Infinity, - Infinity ),
 				new Vector3( + Infinity, + Infinity, + Infinity )
 			);
 
 			return;
-
 		}
 
+		// 如果位置属性存在
 		if ( position !== undefined ) {
-
+			// 根据位置属性设置边界框
 			this.boundingBox.setFromBufferAttribute( position );
 
+			// 如果存在变形属性
 			// process morph attributes if present
-
 			if ( morphAttributesPosition ) {
-
+				// 遍历每个变形属性
 				for ( let i = 0, il = morphAttributesPosition.length; i < il; i ++ ) {
-
+					// 获取当前变形属性
 					const morphAttribute = morphAttributesPosition[ i ];
+					// 根据变形属性设置临时边界框
 					_box.setFromBufferAttribute( morphAttribute );
 
+					// 如果变形目标是相对的
 					if ( this.morphTargetsRelative ) {
-
+						// 计算最小值的和
 						_vector.addVectors( this.boundingBox.min, _box.min );
+						// 扩展边界框以包含新的最小值点
 						this.boundingBox.expandByPoint( _vector );
 
+						// 计算最大值的和
 						_vector.addVectors( this.boundingBox.max, _box.max );
+						// 扩展边界框以包含新的最大值点
 						this.boundingBox.expandByPoint( _vector );
-
 					} else {
-
+						// 扩展边界框以包含变形属性的最小点和最大点
 						this.boundingBox.expandByPoint( _box.min );
 						this.boundingBox.expandByPoint( _box.max );
-
 					}
-
 				}
-
 			}
-
 		} else {
-
+			// 如果位置属性不存在，则将边界框设置为空
 			this.boundingBox.makeEmpty();
-
 		}
 
+		// 如果边界框的min属性包含NaN值
 		if ( isNaN( this.boundingBox.min.x ) || isNaN( this.boundingBox.min.y ) || isNaN( this.boundingBox.min.z ) ) {
-
 			console.error( 'THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The "position" attribute is likely to have NaN values.', this );
-
 		}
 
 	}
@@ -436,7 +436,7 @@ class BufferGeometry extends EventDispatcher {
 			// first, find the center of the bounding sphere
 
 			const center = this.boundingSphere.center;
-
+			//根据位置属性设置临时边界框(最大最小值)
 			_box.setFromBufferAttribute( position );
 
 			// process morph attributes if present
@@ -471,9 +471,8 @@ class BufferGeometry extends EventDispatcher {
 
 			// second, try to find a boundingSphere with a radius smaller than the
 			// boundingSphere of the boundingBox: sqrt(3) smaller in the best case
-
+			//最大的平方根距离
 			let maxRadiusSq = 0;
-
 			for ( let i = 0, il = position.count; i < il; i ++ ) {
 
 				_vector.fromBufferAttribute( position, i );
@@ -509,9 +508,8 @@ class BufferGeometry extends EventDispatcher {
 				}
 
 			}
-
+			//计算球半径
 			this.boundingSphere.radius = Math.sqrt( maxRadiusSq );
-
 			if ( isNaN( this.boundingSphere.radius ) ) {
 
 				console.error( 'THREE.BufferGeometry.computeBoundingSphere(): Computed radius is NaN. The "position" attribute is likely to have NaN values.', this );

@@ -147,9 +147,24 @@ class Texture extends EventDispatcher {
 
 	}
 
+	/**
+	 * 更新矩阵
+	 *
+	 * @description 根据当前对象的属性更新矩阵变换
+	 * @returns 无返回值
+	 */
 	updateMatrix() {
 
-		this.matrix.setUvTransform( this.offset.x, this.offset.y, this.repeat.x, this.repeat.y, this.rotation, this.center.x, this.center.y );
+		// 设置矩阵的UV变换参数
+		this.matrix.setUvTransform(
+			this.offset.x,     // U方向偏移量
+			this.offset.y,     // V方向偏移量
+			this.repeat.x,     // U方向重复次数
+			this.repeat.y,     // V方向重复次数
+			this.rotation,     // 旋转角度
+			this.center.x,     // 旋转中心点X坐标
+			this.center.y      // 旋转中心点Y坐标
+		);
 
 	}
 

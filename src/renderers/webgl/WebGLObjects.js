@@ -28,7 +28,7 @@ function WebGLObjects( gl, geometries, attributes, info ) {
 		// Update once per frame
 		if ( updateMap.get( buffergeometry ) !== frame ) {
 			// 更新缓冲几何体
-			// 实际上 更新的是geometry.attributes
+			// 实际上 更新的是geometry.attributes 将数据存到buffer中
 			geometries.update( buffergeometry );
 			// 更新缓冲几何体对应的帧
 			updateMap.set( buffergeometry, frame );
