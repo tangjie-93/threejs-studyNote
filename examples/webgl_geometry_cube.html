@@ -26,7 +26,6 @@
 			init();
 
 			function init() {
-				debugger
 
 				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 100 );
 				camera.position.z = 2;
@@ -41,7 +40,6 @@
 
 				mesh = new THREE.Mesh( geometry, material );
 				scene.add( mesh );
-				debugger
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				//设置DPR
 				renderer.setPixelRatio( window.devicePixelRatio );

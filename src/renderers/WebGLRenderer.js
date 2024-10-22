@@ -300,7 +300,7 @@ class WebGLRenderer {
 			// 初始化 WebGL 实用工具 convert根据传入类型返回gl类型
 			utils = new WebGLUtils(_gl, extensions);
 
-			// 初始化 WebGL 上下文的相关能力
+			// 初始化 WebGL 上下文的相关能力 通过 gl.getParameter()获取一些参数比如precision
 			capabilities = new WebGLCapabilities(_gl, extensions, parameters, utils);
 
 			// 初始化 WebGL 状态 颜色、深度、混合等缓冲区 纹理等
@@ -523,19 +523,13 @@ class WebGLRenderer {
 		};
 		// 设置视口大小
 		this.setViewport = function (x, y, width, height) {
-
 			if (x.isVector4) {
-
 				_viewport.set(x.x, x.y, x.z, x.w);
-
 			} else {
-
 				_viewport.set(x, y, width, height);
 
 			}
-
 			state.viewport(_currentViewport.copy(_viewport).multiplyScalar(_pixelRatio).round());
-
 		};
 
 		this.getScissor = function (target) {
@@ -587,51 +581,33 @@ class WebGLRenderer {
 		// Clearing
 
 		this.getClearColor = function (target) {
-
 			return target.copy(background.getClearColor());
-
 		};
-
 		this.setClearColor = function () {
-
 			background.setClearColor.apply(background, arguments);
-
 		};
-
 		this.getClearAlpha = function () {
-
 			return background.getClearAlpha();
-
 		};
-
 		this.setClearAlpha = function () {
-
 			background.setClearAlpha.apply(background, arguments);
-
 		};
-		//清楚深度、颜色和模板缓冲区
+		//清除深度、颜色和模板缓冲区
 		this.clear = function (color = true, depth = true, stencil = true) {
-
 			let bits = 0;
-
 			if (color) {
-
 				// check if we're trying to clear an integer target
 				let isIntegerFormat = false;
 				// check if the current render target is an integer format
 				if (_currentRenderTarget !== null) {
-
 					const targetFormat = _currentRenderTarget.texture.format;
 					isIntegerFormat = targetFormat === RGBAIntegerFormat ||
 						targetFormat === RGIntegerFormat ||
 						targetFormat === RedIntegerFormat;
-
 				}
-
 				// use the appropriate clear functions to clear the target if it's a signed
 				// or unsigned integer target
 				if (isIntegerFormat) {
-
 					const targetType = _currentRenderTarget.texture.type;
 					const isUnsignedType = targetType === UnsignedByteType ||
 						targetType === UnsignedIntType ||
@@ -645,29 +621,21 @@ class WebGLRenderer {
 					const r = clearColor.r;
 					const g = clearColor.g;
 					const b = clearColor.b;
-
 					if (isUnsignedType) {
-
 						uintClearColor[0] = r;
 						uintClearColor[1] = g;
 						uintClearColor[2] = b;
 						uintClearColor[3] = a;
 						_gl.clearBufferuiv(_gl.COLOR, 0, uintClearColor);
-
 					} else {
-
 						intClearColor[0] = r;
 						intClearColor[1] = g;
 						intClearColor[2] = b;
 						intClearColor[3] = a;
 						_gl.clearBufferiv(_gl.COLOR, 0, intClearColor);
-
 					}
-
 				} else {
-
 					bits |= _gl.COLOR_BUFFER_BIT;
-
 				}
 
 			}
@@ -728,21 +696,15 @@ class WebGLRenderer {
 
 		};
 
-		// Events
-
 		/**
 		 * 上下文丢失时的回调函数
 		 *
 		 * @param {Event} event - 上下文丢失事件
 		 */
 		function onContextLost(event) {
-
 			event.preventDefault();
-
 			console.log('THREE.WebGLRenderer: Context Lost.');
-
 			_isContextLost = true;
-
 		}
 
 		/**
@@ -751,25 +713,19 @@ class WebGLRenderer {
 		 * @param {Event} [event] - 事件对象（未在此函数中使用）
 		 */
 		function onContextRestore( /* event */) {
-
 			console.log('THREE.WebGLRenderer: Context Restored.');
-
 			_isContextLost = false;
-
 			const infoAutoReset = info.autoReset;
 			const shadowMapEnabled = shadowMap.enabled;
 			const shadowMapAutoUpdate = shadowMap.autoUpdate;
 			const shadowMapNeedsUpdate = shadowMap.needsUpdate;
 			const shadowMapType = shadowMap.type;
-
 			initGLContext();
-
 			info.autoReset = infoAutoReset;
 			shadowMap.enabled = shadowMapEnabled;
 			shadowMap.autoUpdate = shadowMapAutoUpdate;
 			shadowMap.needsUpdate = shadowMapNeedsUpdate;
 			shadowMap.type = shadowMapType;
-
 		}
 
 		/**
@@ -778,52 +734,49 @@ class WebGLRenderer {
 		 * @param {Event} event - 事件对象，包含关于错误的详细信息
 		 */
 		function onContextCreationError(event) {
-
 			console.error('THREE.WebGLRenderer: A WebGL context could not be created. Reason: ', event.statusMessage);
-
 		}
 
+		/**
+		 * 当材质被销毁时触发的回调函数
+		 *
+		 * @param event 事件对象
+		 */
 		function onMaterialDispose(event) {
-
 			const material = event.target;
-
 			material.removeEventListener('dispose', onMaterialDispose);
-
 			deallocateMaterial(material);
-
 		}
 
 		// Buffer deallocation
-
+		/**
+		 * 释放材质资源
+		 *
+		 * @param material 要释放的材质对象
+		 * @returns 无返回值
+		 */
 		function deallocateMaterial(material) {
-
 			releaseMaterialProgramReferences(material);
-
 			properties.remove(material);
-
 		}
-
-
+		/**
+		 * 释放材质程序的引用
+		 *
+		 * @param material 材质对象
+		 * @returns 无返回值
+		 */
 		function releaseMaterialProgramReferences(material) {
-
 			const programs = properties.get(material).programs;
-
 			if (programs !== undefined) {
-
 				programs.forEach(function (program) {
-
+					//相当于gl.deleteProgram( program )和gl.deleteVertexArray(vao)
 					programCache.releaseProgram(program);
-
 				});
-
 				if (material.isShaderMaterial) {
-
+					//释放缓存
 					programCache.releaseShaderCache(material);
-
 				}
-
 			}
-
 		}
 
 
@@ -1773,6 +1726,14 @@ class WebGLRenderer {
 
 		}
 
+		/**
+		 * 获取材质对应的着色器程序
+		 *
+		 * @param material 材质对象
+		 * @param scene 场景对象
+		 * @param object 物体对象
+		 * @returns 材质对应的着色器程序
+		 */
 		function getProgram(material, scene, object) {
 
 			if (scene.isScene !== true) scene = _emptyScene; // scene could be a Mesh, Line, Points, ...
@@ -1826,8 +1787,9 @@ class WebGLRenderer {
 				parameters.uniforms = programCache.getUniforms(material);
 
 				material.onBeforeCompile(parameters, _this);
-
+				//设置材质的program
 				program = programCache.acquireProgram(parameters, programCacheKey);
+				//设置材质的program
 				programs.set(programCacheKey, program);
 
 				materialProperties.uniforms = parameters.uniforms;
@@ -1841,7 +1803,7 @@ class WebGLRenderer {
 				uniforms.clippingPlanes = clipping.uniform;
 
 			}
-
+			//更新普通材质属性
 			updateCommonMaterialProperties(material, parameters);
 
 			// store the light setup it was created for
@@ -1876,7 +1838,7 @@ class WebGLRenderer {
 				// TODO (abelnation): add area lights shadow info to uniforms
 
 			}
-
+			// 设置program
 			materialProperties.currentProgram = program;
 			materialProperties.uniformsList = null;
 
@@ -1884,6 +1846,12 @@ class WebGLRenderer {
 
 		}
 
+		/**
+		 * 获取统一变量列表
+		 *
+		 * @param materialProperties 材料属性对象
+		 * @returns 返回统一变量列表
+		 */
 		function getUniformList(materialProperties) {
 
 			if (materialProperties.uniformsList === null) {
@@ -1897,6 +1865,12 @@ class WebGLRenderer {
 
 		}
 
+		/**
+		 * 更新通用材质属性
+		 *
+		 * @param material 材质对象
+		 * @param parameters 参数对象
+		 */
 		function updateCommonMaterialProperties(material, parameters) {
 
 			const materialProperties = properties.get(material);

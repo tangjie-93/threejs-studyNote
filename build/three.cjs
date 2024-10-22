@@ -2146,9 +2146,24 @@ class Texture extends EventDispatcher {
 
 	}
 
+	/**
+	 * 更新矩阵
+	 *
+	 * @description 根据当前对象的属性更新矩阵变换
+	 * @returns 无返回值
+	 */
 	updateMatrix() {
 
-		this.matrix.setUvTransform( this.offset.x, this.offset.y, this.repeat.x, this.repeat.y, this.rotation, this.center.x, this.center.y );
+		// 设置矩阵的UV变换参数
+		this.matrix.setUvTransform(
+			this.offset.x,     // U方向偏移量
+			this.offset.y,     // V方向偏移量
+			this.repeat.x,     // U方向重复次数
+			this.repeat.y,     // V方向重复次数
+			this.rotation,     // 旋转角度
+			this.center.x,     // 旋转中心点X坐标
+			this.center.y      // 旋转中心点Y坐标
+		);
 
 	}
 
@@ -4764,6 +4779,12 @@ class Vector3 {
 
 	}
 
+	/**
+	 * 返回当前向量与给定向量v在x, y, z三个方向上较小值的向量
+	 *
+	 * @param v 给定向量
+	 * @returns 返回当前向量与给定向量v在x, y, z三个方向上较小值的向量
+	 */
 	min( v ) {
 
 		this.x = Math.min( this.x, v.x );
@@ -4869,8 +4890,14 @@ class Vector3 {
 
 	}
 
+	/**
+	 * 计算向量点积
+	 *
+	 * @param v 向量对象
+	 * @returns 返回点积结果
+	 */
 	dot( v ) {
-
+		// a⋅b=|a||*||b||*cosθ 
 		return this.x * v.x + this.y * v.y + this.z * v.z;
 
 	}
@@ -5184,6 +5211,13 @@ class Vector3 {
 
 	}
 
+	/**
+	 * 从BufferAttribute中读取指定索引的属性值，并设置到当前对象的x、y、z属性上
+	 *
+	 * @param attribute 要读取的BufferAttribute对象
+	 * @param index 要读取的索引值
+	 * @returns 返回当前对象，以便进行链式调用
+	 */
 	fromBufferAttribute( attribute, index ) {
 
 		this.x = attribute.getX( index );
@@ -5277,6 +5311,12 @@ class Box3 {
 
 	}
 
+	/**
+	 * 从BufferAttribute设置几何体
+	 *
+	 * @param attribute BufferAttribute 类型的参数
+	 * @returns 返回几何体本身
+	 */
 	setFromBufferAttribute( attribute ) {
 
 		this.makeEmpty();
@@ -5356,18 +5396,37 @@ class Box3 {
 
 	}
 
+	/**
+	 * 获取三维盒子的中心点
+	 *
+	 * @param target 目标向量，用于存储计算得到的中心点
+	 * @returns 返回目标向量，包含计算得到的中心点坐标
+	 */
 	getCenter( target ) {
 
-		return this.isEmpty() ? target.set( 0, 0, 0 ) : target.addVectors( this.min, this.max ).multiplyScalar( 0.5 );
-
+		// 如果为空，则设置目标向量的值为 (0, 0, 0)
+		return this.isEmpty() ? target.set( 0, 0, 0 ) :
+			// 否则，计算最小向量和最大向量的和，然后乘以0.5，将结果赋值给目标向量
+			target.addVectors( this.min, this.max ).multiplyScalar( 0.5 );
 	}
 
 	getSize( target ) {
 
-		return this.isEmpty() ? target.set( 0, 0, 0 ) : target.subVectors( this.max, this.min );
+		// 判断当前对象是否为空
+		return this.isEmpty() ?
+			// 如果为空，则将目标向量的x、y、z坐标都设置为0
+			target.set( 0, 0, 0 ) :
+			// 如果不为空，则计算最大向量和最小向量的差值，并将结果赋值给目标向量
+			target.subVectors( this.max, this.min );
 
 	}
 
+	/**
+	 * 根据给定的点扩展边界
+	 *
+	 * @param point 给定的点
+	 * @returns 返回当前对象
+	 */
 	expandByPoint( point ) {
 
 		this.min.min( point );
@@ -5377,6 +5436,12 @@ class Box3 {
 
 	}
 
+	/**
+	 * 根据向量扩展边界
+	 *
+	 * @param vector 向量对象
+	 * @returns 返回当前边界对象
+	 */
 	expandByVector( vector ) {
 
 		this.min.sub( vector );
@@ -5916,13 +5981,18 @@ class Sphere {
 
 	}
 
+	/**
+	 * 应用 4x4 矩阵变换。
+	 *
+	 * @param matrix 4x4 矩阵。
+	 * @returns 返回当前对象。
+	 */
 	applyMatrix4( matrix ) {
-
+		// 应用矩阵到中心点
 		this.center.applyMatrix4( matrix );
+		// 根据矩阵的最大缩放比例调整半径
 		this.radius = this.radius * matrix.getMaxScaleOnAxis();
-
 		return this;
-
 	}
 
 	translate( offset ) {
@@ -6638,6 +6708,14 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 提取基础向量
+	 *
+	 * @param xAxis x轴向量
+	 * @param yAxis y轴向量
+	 * @param zAxis z轴向量
+	 * @returns 返回当前对象
+	 */
 	extractBasis( xAxis, yAxis, zAxis ) {
 
 		xAxis.setFromMatrixColumn( this, 0 );
@@ -6648,6 +6726,14 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 生成基础矩阵
+	 *
+	 * @param xAxis X轴向量
+	 * @param yAxis Y轴向量
+	 * @param zAxis Z轴向量
+	 * @returns 返回当前对象
+	 */
 	makeBasis( xAxis, yAxis, zAxis ) {
 
 		this.set(
@@ -6661,6 +6747,13 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 从给定的矩阵中提取旋转信息，并应用到当前矩阵中
+	 *
+	 * @param m 给定的矩阵
+	 * @returns 当前矩阵
+	 * @throws 不支持反射矩阵
+	 */
 	extractRotation( m ) {
 
 		// this method does not support reflection matrices
@@ -6840,6 +6933,14 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 设置物体的朝向，使其朝向目标点。
+	 *
+	 * @param eye 眼睛位置向量
+	 * @param target 目标位置向量
+	 * @param up 上方向向量
+	 * @returns 返回当前对象
+	 */
 	lookAt( eye, target, up ) {
 
 		const te = this.elements;
@@ -6893,12 +6994,25 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 预乘矩阵
+	 *
+	 * @param m 要预乘的矩阵
+	 * @returns 返回预乘后的矩阵
+	 */
 	premultiply( m ) {
 
 		return this.multiplyMatrices( m, this );
 
 	}
 
+	/**
+	 * 矩阵乘法
+	 *
+	 * @param a 矩阵a
+	 * @param b 矩阵b
+	 * @returns 返回当前矩阵对象
+	 */
 	multiplyMatrices( a, b ) {
 
 		const ae = a.elements;
@@ -6939,28 +7053,32 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 将矩阵的每个元素都乘以标量s
+	 *
+	 * @param s 标量值
+	 * @returns 返回该矩阵实例
+	 */
 	multiplyScalar( s ) {
-
 		const te = this.elements;
-
 		te[ 0 ] *= s; te[ 4 ] *= s; te[ 8 ] *= s; te[ 12 ] *= s;
 		te[ 1 ] *= s; te[ 5 ] *= s; te[ 9 ] *= s; te[ 13 ] *= s;
 		te[ 2 ] *= s; te[ 6 ] *= s; te[ 10 ] *= s; te[ 14 ] *= s;
 		te[ 3 ] *= s; te[ 7 ] *= s; te[ 11 ] *= s; te[ 15 ] *= s;
-
 		return this;
-
 	}
 
+	/**
+	 * 计算矩阵的行列式
+	 *
+	 * @returns 返回计算后的行列式值
+	 */
 	determinant() {
-
 		const te = this.elements;
-
 		const n11 = te[ 0 ], n12 = te[ 4 ], n13 = te[ 8 ], n14 = te[ 12 ];
 		const n21 = te[ 1 ], n22 = te[ 5 ], n23 = te[ 9 ], n24 = te[ 13 ];
 		const n31 = te[ 2 ], n32 = te[ 6 ], n33 = te[ 10 ], n34 = te[ 14 ];
 		const n41 = te[ 3 ], n42 = te[ 7 ], n43 = te[ 11 ], n44 = te[ 15 ];
-
 		//TODO: make this more efficient
 		//( based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm )
 
@@ -7002,6 +7120,11 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 矩阵转置 它将矩阵的行和列互换
+	 *
+	 * @returns 返回当前对象
+	 */
 	transpose() {
 
 		const te = this.elements;
@@ -7019,28 +7142,33 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 设置对象的位置 实际上是偏移
+	 *
+	 * @param x x坐标，可以是一个数字或者Vector3对象
+	 * @param y y坐标，当x为数字时必填，否则无需填写
+	 * @param z z坐标，当x为数字时必填，否则无需填写
+	 * @returns 返回当前对象，以便链式调用
+	 */
 	setPosition( x, y, z ) {
-
 		const te = this.elements;
-
 		if ( x.isVector3 ) {
-
 			te[ 12 ] = x.x;
 			te[ 13 ] = x.y;
 			te[ 14 ] = x.z;
-
 		} else {
-
 			te[ 12 ] = x;
 			te[ 13 ] = y;
 			te[ 14 ] = z;
-
 		}
-
 		return this;
-
 	}
 
+	/**
+	 * 反转矩阵 矩阵求逆
+	 *
+	 * @returns 返回当前矩阵对象
+	 */
 	invert() {
 
 		// based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
@@ -7100,63 +7228,67 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 获取坐标轴上的最大缩放比例
+	 *
+	 * @returns 返回最大缩放比例值
+	 */
 	getMaxScaleOnAxis() {
-
+		// 获取元素数组
 		const te = this.elements;
-
+		// 计算X轴上的缩放平方
 		const scaleXSq = te[ 0 ] * te[ 0 ] + te[ 1 ] * te[ 1 ] + te[ 2 ] * te[ 2 ];
+		// 计算Y轴上的缩放平方
 		const scaleYSq = te[ 4 ] * te[ 4 ] + te[ 5 ] * te[ 5 ] + te[ 6 ] * te[ 6 ];
+		// 计算Z轴上的缩放平方
 		const scaleZSq = te[ 8 ] * te[ 8 ] + te[ 9 ] * te[ 9 ] + te[ 10 ] * te[ 10 ];
-
+		// 返回三个轴上的最大缩放平方的平方根
 		return Math.sqrt( Math.max( scaleXSq, scaleYSq, scaleZSq ) );
-
 	}
 
+	/**
+	 * 创建一个平移矩阵
+	 *
+	 * @param x 平移向量的x分量或THREE.Vector3对象
+	 * @param y 平移向量的y分量（当x为THREE.Vector3对象时忽略）
+	 * @param z 平移向量的z分量（当x为THREE.Vector3对象时忽略）
+	 * @returns 返回当前矩阵对象
+	 */
 	makeTranslation( x, y, z ) {
-
 		if ( x.isVector3 ) {
-
 			this.set(
 
 				1, 0, 0, x.x,
 				0, 1, 0, x.y,
 				0, 0, 1, x.z,
 				0, 0, 0, 1
-
 			);
-
 		} else {
-
 			this.set(
-
 				1, 0, 0, x,
 				0, 1, 0, y,
 				0, 0, 1, z,
 				0, 0, 0, 1
-
 			);
-
 		}
-
 		return this;
-
 	}
 
+	/**
+	 * 围绕X轴旋转矩阵
+	 *
+	 * @param theta 旋转角度（弧度制）
+	 * @returns 返回旋转后的矩阵
+	 */
 	makeRotationX( theta ) {
-
 		const c = Math.cos( theta ), s = Math.sin( theta );
-
 		this.set(
-
 			1, 0, 0, 0,
 			0, c, - s, 0,
 			0, s, c, 0,
 			0, 0, 0, 1
-
 		);
-
 		return this;
-
 	}
 
 	makeRotationY( theta ) {
@@ -7193,57 +7325,58 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 根据给定的轴和角度生成旋转矩阵
+	 *
+	 * @param axis 轴对象，包含x、y、z三个属性，表示旋转轴
+	 * @param angle 旋转角度，单位为弧度
+	 * @returns 返回当前的矩阵对象
+	 */
 	makeRotationAxis( axis, angle ) {
-
 		// Based on http://www.gamedev.net/reference/articles/article1199.asp
-
 		const c = Math.cos( angle );
 		const s = Math.sin( angle );
 		const t = 1 - c;
 		const x = axis.x, y = axis.y, z = axis.z;
 		const tx = t * x, ty = t * y;
-
 		this.set(
-
 			tx * x + c, tx * y - s * z, tx * z + s * y, 0,
 			tx * y + s * z, ty * y + c, ty * z - s * x, 0,
 			tx * z - s * y, ty * z + s * x, t * z * z + c, 0,
 			0, 0, 0, 1
-
 		);
-
 		return this;
-
 	}
 
 	makeScale( x, y, z ) {
-
 		this.set(
-
 			x, 0, 0, 0,
 			0, y, 0, 0,
 			0, 0, z, 0,
 			0, 0, 0, 1
-
 		);
-
 		return this;
-
 	}
 
+	/**
+	 * 生成剪切矩阵
+	 *
+	 * @param xy x轴沿y轴方向的剪切系数
+	 * @param xz x轴沿z轴方向的剪切系数
+	 * @param yx y轴沿x轴方向的剪切系数
+	 * @param yz y轴沿z轴方向的剪切系数
+	 * @param zx z轴沿x轴方向的剪切系数
+	 * @param zy z轴沿y轴方向的剪切系数
+	 * @returns 返回当前矩阵对象
+	 */
 	makeShear( xy, xz, yx, yz, zx, zy ) {
-
 		this.set(
-
 			1, yx, zx, 0,
 			xy, 1, zy, 0,
 			xz, yz, 1, 0,
 			0, 0, 0, 1
-
 		);
-
 		return this;
-
 	}
 
 	/**
@@ -7431,6 +7564,13 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 从数组创建向量
+	 *
+	 * @param array 数组
+	 * @param offset 偏移量，默认为0
+	 * @returns 返回当前向量
+	 */
 	fromArray( array, offset = 0 ) {
 
 		for ( let i = 0; i < 16; i ++ ) {
@@ -7443,6 +7583,13 @@ class Matrix4 {
 
 	}
 
+	/**
+	 * 将元素的数组转换为一维数组并返回。
+	 *
+	 * @param array 目标数组，默认为空数组。
+	 * @param offset 偏移量，默认为0。
+	 * @returns 转换后的一维数组。
+	 */
 	toArray( array = [], offset = 0 ) {
 
 		const te = this.elements;
@@ -11759,70 +11906,70 @@ class BufferGeometry extends EventDispatcher {
 	 */
 	computeBoundingBox() {
 
+		// 如果边界框为空，则创建一个新的边界框对象
 		if ( this.boundingBox === null ) {
-
 			this.boundingBox = new Box3();
-
 		}
 
+		// 获取位置属性
 		const position = this.attributes.position;
+		// 获取变形属性中的位置属性
 		const morphAttributesPosition = this.morphAttributes.position;
 
+		// 如果位置属性存在且是GLBufferAttribute类型
 		if ( position && position.isGLBufferAttribute ) {
-
 			console.error( 'THREE.BufferGeometry.computeBoundingBox(): GLBufferAttribute requires a manual bounding box.', this );
 
+			// 将边界框设置为无限大
 			this.boundingBox.set(
 				new Vector3( - Infinity, - Infinity, - Infinity ),
 				new Vector3( + Infinity, + Infinity, + Infinity )
 			);
 
 			return;
-
 		}
 
+		// 如果位置属性存在
 		if ( position !== undefined ) {
-
+			// 根据位置属性设置边界框
 			this.boundingBox.setFromBufferAttribute( position );
 
+			// 如果存在变形属性
 			// process morph attributes if present
-
 			if ( morphAttributesPosition ) {
-
+				// 遍历每个变形属性
 				for ( let i = 0, il = morphAttributesPosition.length; i < il; i ++ ) {
-
+					// 获取当前变形属性
 					const morphAttribute = morphAttributesPosition[ i ];
+					// 根据变形属性设置临时边界框
 					_box$2.setFromBufferAttribute( morphAttribute );
 
+					// 如果变形目标是相对的
 					if ( this.morphTargetsRelative ) {
-
+						// 计算最小值的和
 						_vector$8.addVectors( this.boundingBox.min, _box$2.min );
+						// 扩展边界框以包含新的最小值点
 						this.boundingBox.expandByPoint( _vector$8 );
 
+						// 计算最大值的和
 						_vector$8.addVectors( this.boundingBox.max, _box$2.max );
+						// 扩展边界框以包含新的最大值点
 						this.boundingBox.expandByPoint( _vector$8 );
-
 					} else {
-
+						// 扩展边界框以包含变形属性的最小点和最大点
 						this.boundingBox.expandByPoint( _box$2.min );
 						this.boundingBox.expandByPoint( _box$2.max );
-
 					}
-
 				}
-
 			}
-
 		} else {
-
+			// 如果位置属性不存在，则将边界框设置为空
 			this.boundingBox.makeEmpty();
-
 		}
 
+		// 如果边界框的min属性包含NaN值
 		if ( isNaN( this.boundingBox.min.x ) || isNaN( this.boundingBox.min.y ) || isNaN( this.boundingBox.min.z ) ) {
-
 			console.error( 'THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The "position" attribute is likely to have NaN values.', this );
-
 		}
 
 	}
@@ -11858,7 +12005,7 @@ class BufferGeometry extends EventDispatcher {
 			// first, find the center of the bounding sphere
 
 			const center = this.boundingSphere.center;
-
+			//根据位置属性设置临时边界框(最大最小值)
 			_box$2.setFromBufferAttribute( position );
 
 			// process morph attributes if present
@@ -11893,9 +12040,8 @@ class BufferGeometry extends EventDispatcher {
 
 			// second, try to find a boundingSphere with a radius smaller than the
 			// boundingSphere of the boundingBox: sqrt(3) smaller in the best case
-
+			//最大的平方根距离
 			let maxRadiusSq = 0;
-
 			for ( let i = 0, il = position.count; i < il; i ++ ) {
 
 				_vector$8.fromBufferAttribute( position, i );
@@ -11931,9 +12077,8 @@ class BufferGeometry extends EventDispatcher {
 				}
 
 			}
-
+			//计算球半径
 			this.boundingSphere.radius = Math.sqrt( maxRadiusSq );
-
 			if ( isNaN( this.boundingSphere.radius ) ) {
 
 				console.error( 'THREE.BufferGeometry.computeBoundingSphere(): Computed radius is NaN. The "position" attribute is likely to have NaN values.', this );
@@ -14314,8 +14459,18 @@ class Plane {
 
 	}
 
+	/**
+	 * 计算点到平面的距离
+	 *
+	 * @param point 点坐标
+	 * @returns 返回点到平面的距离
+	 */
 	distanceToPoint( point ) {
 
+		// 计算点与平面之间的距离
+		//  a⋅b=|a||*||b||*cosθ 
+		// 本质上是计算一个向量在另一个向量上的投影长度
+		// 投影长度= (a*b)/|a| 当a是单位向量时，就可以简化为投影长度= (a*b)
 		return this.normal.dot( point ) + this.constant;
 
 	}
@@ -14551,25 +14706,24 @@ class Frustum {
      * 判断球与指定的THREE.Object3D对象是否相交。如果对象没有绑定半径，会先计算其包围球并应用世界变换。
      */
 	intersectsObject( object ) {
-
+		// 如果对象有边界球体
 		if ( object.boundingSphere !== undefined ) {
-
+			// 如果边界球体为空，则计算边界球体
 			if ( object.boundingSphere === null ) object.computeBoundingSphere();
-
+			// 复制对象的边界球体，并应用对象的世界矩阵
 			_sphere$5.copy( object.boundingSphere ).applyMatrix4( object.matrixWorld );
-
+		// 如果对象没有边界球体
 		} else {
-
+			// 获取对象的几何体
 			const geometry = object.geometry;
-
+			// 如果几何体的边界球体为空，则计算边界球体
 			if ( geometry.boundingSphere === null ) geometry.computeBoundingSphere();
-
+			// 复制几何体的边界球体，并应用对象的世界矩阵 
+			// 应用矩阵主要是更新中心点和半径
 			_sphere$5.copy( geometry.boundingSphere ).applyMatrix4( object.matrixWorld );
-
 		}
-
+		// 判断当前对象是否与边界球体相交
 		return this.intersectsSphere( _sphere$5 );
-
 	}
 
     /**
@@ -14588,33 +14742,25 @@ class Frustum {
 
 	}
 
-    /**
-     * @method intersectsSphere
-     * @param {THREE.Sphere} sphere
-     * @returns {boolean} True if the frustum intersects the given sphere, otherwise false.
-     * @description
-     * Checks whether the frustum intersects with a given sphere.
-     */
+	/**
+	 * 判断当前对象是否与球体相交
+	 *
+	 * @param sphere 球体对象，包含center（中心点）和radius（半径）属性
+	 * @returns 返回布尔值，表示当前对象是否与球体相交
+	 */
 	intersectsSphere( sphere ) {
 
 		const planes = this.planes;
 		const center = sphere.center;
 		const negRadius = - sphere.radius;
-
 		for ( let i = 0; i < 6; i ++ ) {
-
+			//计算面到点的距离
 			const distance = planes[ i ].distanceToPoint( center );
-
 			if ( distance < negRadius ) {
-
 				return false;
-
 			}
-
 		}
-
 		return true;
-
 	}
 
     /**
@@ -16116,42 +16262,63 @@ function WebGLBackground( renderer, cubemaps, cubeuvmaps, state, objects, alpha,
 
 	}
 
+	/**
+	 * 渲染场景
+	 *
+	 * @param scene 要渲染的场景
+	 * @returns 无返回值
+	 */
 	function render( scene ) {
 
+		// 是否强制清除颜色缓冲
 		let forceClear = false;
+
+		// 获取场景的背景
 		const background = getBackground( scene );
 
+		// 如果背景为空
 		if ( background === null ) {
 
+			// 设置清除颜色和透明度
 			setClear( clearColor, clearAlpha );
 
+		// 如果背景存在且是颜色类型
 		} else if ( background && background.isColor ) {
 
+			// 设置清除颜色为背景颜色，透明度为1
 			setClear( background, 1 );
+			// 设置强制清除颜色缓冲
 			forceClear = true;
 
 		}
 
+		// 获取环境混合模式
 		const environmentBlendMode = renderer.xr.getEnvironmentBlendMode();
 
+		// 如果环境混合模式为加法混合
 		if ( environmentBlendMode === 'additive' ) {
 
+			// 设置颜色缓冲的清除颜色为黑色，透明度为1，是否预乘alpha
 			state.buffers.color.setClear( 0, 0, 0, 1, premultipliedAlpha );
 
+		// 如果环境混合模式为Alpha混合
 		} else if ( environmentBlendMode === 'alpha-blend' ) {
 
+			// 设置颜色缓冲的清除颜色为黑色，透明度为0，是否预乘alpha
 			state.buffers.color.setClear( 0, 0, 0, 0, premultipliedAlpha );
 
 		}
 
+		// 如果需要自动清除或者强制清除
 		if ( renderer.autoClear || forceClear ) {
 
+			// 缓冲可能不可写，这是确保正确清除所必需的
 			// buffers might not be writable which is required to ensure a correct clear
-
 			state.buffers.depth.setTest( true );
 			state.buffers.depth.setMask( true );
 			state.buffers.color.setMask( true );
 
+			// 清除颜色、深度和模板缓冲
 			renderer.clear( renderer.autoClearColor, renderer.autoClearDepth, renderer.autoClearStencil );
 
 		}
@@ -19532,7 +19699,7 @@ function WebGLObjects( gl, geometries, attributes, info ) {
 		// Update once per frame
 		if ( updateMap.get( buffergeometry ) !== frame ) {
 			// 更新缓冲几何体
-			// 实际上 更新的是geometry.attributes
+			// 实际上 更新的是geometry.attributes 将数据存到buffer中
 			geometries.update( buffergeometry );
 			// 更新缓冲几何体对应的帧
 			updateMap.set( buffergeometry, frame );
@@ -22886,49 +23053,39 @@ function WebGLPrograms(renderer, cubemaps, cubeuvmaps, extensions, capabilities,
  * @returns 返回包含get、remove、update、dispose方法的对象
  */
 function WebGLProperties() {
-
 	let properties = new WeakMap();
-
 	function get( object ) {
-
 		let map = properties.get( object );
-
 		if ( map === undefined ) {
-
 			map = {};
 			properties.set( object, map );
-
 		}
-
 		return map;
 
 	}
 
+	/**
+	 * 从 properties 集合中移除指定对象
+	 *
+	 * @param object 要移除的对象
+	 * @returns 无返回值
+	 */
 	function remove( object ) {
-
 		properties.delete( object );
-
 	}
-
 	function update( object, key, value ) {
-
 		properties.get( object )[ key ] = value;
-
 	}
 
 	function dispose() {
-
 		properties = new WeakMap();
-
 	}
-
 	return {
 		get: get,
 		remove: remove,
 		update: update,
 		dispose: dispose
 	};
-
 }
 
 function painterSortStable( a, b ) {
@@ -31246,19 +31403,13 @@ class WebGLRenderer {
 		};
 		// 设置视口大小
 		this.setViewport = function (x, y, width, height) {
-
 			if (x.isVector4) {
-
 				_viewport.set(x.x, x.y, x.z, x.w);
-
 			} else {
-
 				_viewport.set(x, y, width, height);
 
 			}
-
 			state.viewport(_currentViewport.copy(_viewport).multiplyScalar(_pixelRatio).round());
-
 		};
 
 		this.getScissor = function (target) {
@@ -31310,51 +31461,33 @@ class WebGLRenderer {
 		// Clearing
 
 		this.getClearColor = function (target) {
-
 			return target.copy(background.getClearColor());
-
 		};
-
 		this.setClearColor = function () {
-
 			background.setClearColor.apply(background, arguments);
-
 		};
-
 		this.getClearAlpha = function () {
-
 			return background.getClearAlpha();
-
 		};
-
 		this.setClearAlpha = function () {
-
 			background.setClearAlpha.apply(background, arguments);
-
 		};
-
+		//清除深度、颜色和模板缓冲区
 		this.clear = function (color = true, depth = true, stencil = true) {
-
 			let bits = 0;
-
 			if (color) {
-
 				// check if we're trying to clear an integer target
 				let isIntegerFormat = false;
 				// check if the current render target is an integer format
 				if (_currentRenderTarget !== null) {
-
 					const targetFormat = _currentRenderTarget.texture.format;
 					isIntegerFormat = targetFormat === RGBAIntegerFormat ||
 						targetFormat === RGIntegerFormat ||
 						targetFormat === RedIntegerFormat;
-
 				}
-
 				// use the appropriate clear functions to clear the target if it's a signed
 				// or unsigned integer target
 				if (isIntegerFormat) {
-
 					const targetType = _currentRenderTarget.texture.type;
 					const isUnsignedType = targetType === UnsignedByteType ||
 						targetType === UnsignedIntType ||
@@ -31368,29 +31501,21 @@ class WebGLRenderer {
 					const r = clearColor.r;
 					const g = clearColor.g;
 					const b = clearColor.b;
-
 					if (isUnsignedType) {
-
 						uintClearColor[0] = r;
 						uintClearColor[1] = g;
 						uintClearColor[2] = b;
 						uintClearColor[3] = a;
 						_gl.clearBufferuiv(_gl.COLOR, 0, uintClearColor);
-
 					} else {
-
 						intClearColor[0] = r;
 						intClearColor[1] = g;
 						intClearColor[2] = b;
 						intClearColor[3] = a;
 						_gl.clearBufferiv(_gl.COLOR, 0, intClearColor);
-
 					}
-
 				} else {
-
 					bits |= _gl.COLOR_BUFFER_BIT;
-
 				}
 
 			}
@@ -31451,21 +31576,15 @@ class WebGLRenderer {
 
 		};
 
-		// Events
-
 		/**
 		 * 上下文丢失时的回调函数
 		 *
 		 * @param {Event} event - 上下文丢失事件
 		 */
 		function onContextLost(event) {
-
 			event.preventDefault();
-
 			console.log('THREE.WebGLRenderer: Context Lost.');
-
 			_isContextLost = true;
-
 		}
 
 		/**
@@ -31474,25 +31593,19 @@ class WebGLRenderer {
 		 * @param {Event} [event] - 事件对象（未在此函数中使用）
 		 */
 		function onContextRestore( /* event */) {
-
 			console.log('THREE.WebGLRenderer: Context Restored.');
-
 			_isContextLost = false;
-
 			const infoAutoReset = info.autoReset;
 			const shadowMapEnabled = shadowMap.enabled;
 			const shadowMapAutoUpdate = shadowMap.autoUpdate;
 			const shadowMapNeedsUpdate = shadowMap.needsUpdate;
 			const shadowMapType = shadowMap.type;
-
 			initGLContext();
-
 			info.autoReset = infoAutoReset;
 			shadowMap.enabled = shadowMapEnabled;
 			shadowMap.autoUpdate = shadowMapAutoUpdate;
 			shadowMap.needsUpdate = shadowMapNeedsUpdate;
 			shadowMap.type = shadowMapType;
-
 		}
 
 		/**
@@ -31501,52 +31614,49 @@ class WebGLRenderer {
 		 * @param {Event} event - 事件对象，包含关于错误的详细信息
 		 */
 		function onContextCreationError(event) {
-
 			console.error('THREE.WebGLRenderer: A WebGL context could not be created. Reason: ', event.statusMessage);
-
 		}
 
+		/**
+		 * 当材质被销毁时触发的回调函数
+		 *
+		 * @param event 事件对象
+		 */
 		function onMaterialDispose(event) {
-
 			const material = event.target;
-
 			material.removeEventListener('dispose', onMaterialDispose);
-
 			deallocateMaterial(material);
-
 		}
 
 		// Buffer deallocation
-
+		/**
+		 * 释放材质资源
+		 *
+		 * @param material 要释放的材质对象
+		 * @returns 无返回值
+		 */
 		function deallocateMaterial(material) {
-
 			releaseMaterialProgramReferences(material);
-
 			properties.remove(material);
-
 		}
-
-
+		/**
+		 * 释放材质程序的引用
+		 *
+		 * @param material 材质对象
+		 * @returns 无返回值
+		 */
 		function releaseMaterialProgramReferences(material) {
-
 			const programs = properties.get(material).programs;
-
 			if (programs !== undefined) {
-
 				programs.forEach(function (program) {
-
+					//相当于gl.deleteProgram( program )和gl.deleteVertexArray(vao)
 					programCache.releaseProgram(program);
-
 				});
-
 				if (material.isShaderMaterial) {
-
+					//释放缓存
 					programCache.releaseShaderCache(material);
-
 				}
-
 			}
-
 		}
 
 
@@ -31562,6 +31672,12 @@ class WebGLRenderer {
 		 */
 		this.renderBufferDirect = function (camera, scene, geometry, material, object, group) {
 			if (scene === null) scene = _emptyScene; // renderBufferDirect second parameter used to be fog (could be null)
+			/***
+			 * 在几何变换中，行列式提供了一些重要信息：
+				1.如果行列式为 1，表示变换是等比例的，没有改变对象的体积。
+				2.如果行列式为 0，表示变换引入了某种“退化”（例如将三维对象压缩到二维平面），可能导致体积为零。
+				3.如果行列式为 负值，表示变换包含反射（比如镜像操作）。
+			 */
 			const frontFaceCW = (object.isMesh && object.matrixWorld.determinant() < 0);
 			// 确定program
 			const program = setProgram(camera, scene, geometry, material, object);
@@ -31602,9 +31718,7 @@ class WebGLRenderer {
 			const drawCount = drawEnd - drawStart;
 
 			if (drawCount < 0 || drawCount === Infinity) return;
-
-			//
-
+			//初始化渲染状态
 			bindingStates.setup(object, material, program, geometry, index);
 
 			let attribute;
@@ -31785,7 +31899,7 @@ class WebGLRenderer {
 				});
 
 			}
-
+			//初始化光照
 			currentRenderState.setupLights();
 
 			// Only initialize materials in the new scene, not the targetScene.
@@ -32026,7 +32140,7 @@ class WebGLRenderer {
 			// 渲染场景
 			const opaqueObjects = currentRenderList.opaque;
 			const transmissiveObjects = currentRenderList.transmissive;
-
+			// 初始化光照
 			currentRenderState.setupLights();
 			// 根据相机类型渲染场景
 			if (camera.isArrayCamera) {
@@ -32060,7 +32174,7 @@ class WebGLRenderer {
 				if (transmissiveObjects.length > 0) renderTransmissionPass(opaqueObjects, transmissiveObjects, scene, camera);
 
 				if (_renderBackground) background.render(scene);
-
+				//渲染场景中的对象
 				renderScene(currentRenderList, scene, camera);
 
 			}
@@ -32164,7 +32278,7 @@ class WebGLRenderer {
 						const material = object.material;
 						// 材质是否可见
 						if (material.visible) {
-
+							// 在这里根据材质是否透明来将物体分组
 							currentRenderList.push(object, geometry, material, groupOrder, _vector4.z, null);
 
 						}
@@ -32216,7 +32330,7 @@ class WebGLRenderer {
 							}
 
 						} else if (material.visible) {
-
+							// 在这里根据材质是否透明来将物体分组
 							currentRenderList.push(object, geometry, material, groupOrder, _vector4.z, null);
 
 						}
@@ -32250,7 +32364,7 @@ class WebGLRenderer {
 			const opaqueObjects = currentRenderList.opaque;
 			const transmissiveObjects = currentRenderList.transmissive;
 			const transparentObjects = currentRenderList.transparent;
-
+			//启用光源
 			currentRenderState.setupLightsView(camera);
 
 			if (_clippingEnabled === true) clipping.setGlobalState(_this.clippingPlanes, camera);
@@ -32492,6 +32606,14 @@ class WebGLRenderer {
 
 		}
 
+		/**
+		 * 获取材质对应的着色器程序
+		 *
+		 * @param material 材质对象
+		 * @param scene 场景对象
+		 * @param object 物体对象
+		 * @returns 材质对应的着色器程序
+		 */
 		function getProgram(material, scene, object) {
 
 			if (scene.isScene !== true) scene = _emptyScene; // scene could be a Mesh, Line, Points, ...
@@ -32603,6 +32725,12 @@ class WebGLRenderer {
 
 		}
 
+		/**
+		 * 获取统一变量列表
+		 *
+		 * @param materialProperties 材料属性对象
+		 * @returns 返回统一变量列表
+		 */
 		function getUniformList(materialProperties) {
 
 			if (materialProperties.uniformsList === null) {
@@ -32616,6 +32744,12 @@ class WebGLRenderer {
 
 		}
 
+		/**
+		 * 更新通用材质属性
+		 *
+		 * @param material 材质对象
+		 * @param parameters 参数对象
+		 */
 		function updateCommonMaterialProperties(material, parameters) {
 
 			const materialProperties = properties.get(material);
@@ -32638,11 +32772,11 @@ class WebGLRenderer {
 			materialProperties.toneMapping = parameters.toneMapping;
 
 		}
-
+		//使用对应的program进行下面的渲染
 		function setProgram(camera, scene, geometry, material, object) {
 
 			if (scene.isScene !== true) scene = _emptyScene; // scene could be a Mesh, Line, Points, ...
-
+			//重置纹理单元为0
 			textures.resetTextureUnits();
 
 			const fog = scene.fog;
@@ -32669,7 +32803,7 @@ class WebGLRenderer {
 
 			const morphAttribute = geometry.morphAttributes.position || geometry.morphAttributes.normal || geometry.morphAttributes.color;
 			const morphTargetsCount = (morphAttribute !== undefined) ? morphAttribute.length : 0;
-
+			//在什么地方设置的？
 			const materialProperties = properties.get(material);
 			const lights = currentRenderState.state.lights;
 
@@ -32689,11 +32823,8 @@ class WebGLRenderer {
 				}
 
 			}
-
-			//
-
+			// 判断是否需要更新program
 			let needsProgramChange = false;
-
 			if (material.version === materialProperties.__version) {
 
 				if (materialProperties.needsLights && (materialProperties.lightsStateVersion !== lights.state.version)) {
@@ -32803,8 +32934,6 @@ class WebGLRenderer {
 
 			}
 
-			//
-
 			let program = materialProperties.currentProgram;
 
 			if (needsProgramChange === true) {
@@ -32819,7 +32948,7 @@ class WebGLRenderer {
 
 			const p_uniforms = program.getUniforms(),
 				m_uniforms = materialProperties.uniforms;
-
+			//判断是否需要更新调用gl.useProgram(program)
 			if (state.useProgram(program.program)) {
 
 				refreshProgram = true;
@@ -32827,63 +32956,47 @@ class WebGLRenderer {
 				refreshLights = true;
 
 			}
-
+			//判断是否需要更新材质
 			if (material.id !== _currentMaterialId) {
-
 				_currentMaterialId = material.id;
-
 				refreshMaterial = true;
-
 			}
-
+			//判断program和camera是否跟上次的一样
 			if (refreshProgram || _currentCamera !== camera) {
-
+				//设置相机相关矩阵(投影矩阵和视图矩阵)
 				// common camera uniforms
-
 				p_uniforms.setValue(_gl, 'projectionMatrix', camera.projectionMatrix);
 				p_uniforms.setValue(_gl, 'viewMatrix', camera.matrixWorldInverse);
-
+				//相机位置
 				const uCamPos = p_uniforms.map.cameraPosition;
-
 				if (uCamPos !== undefined) {
-
 					uCamPos.setValue(_gl, _vector3.setFromMatrixPosition(camera.matrixWorld));
-
 				}
 
 				if (capabilities.logarithmicDepthBuffer) {
-
 					p_uniforms.setValue(_gl, 'logDepthBufFC',
 						2.0 / (Math.log(camera.far + 1.0) / Math.LN2));
-
 				}
-
 				// consider moving isOrthographic to UniformLib and WebGLMaterials, see https://github.com/mrdoob/three.js/pull/26467#issuecomment-1645185067
-
 				if (material.isMeshPhongMaterial ||
 					material.isMeshToonMaterial ||
 					material.isMeshLambertMaterial ||
 					material.isMeshBasicMaterial ||
 					material.isMeshStandardMaterial ||
 					material.isShaderMaterial) {
-
+					//判断是否是正交投影
 					p_uniforms.setValue(_gl, 'isOrthographic', camera.isOrthographicCamera === true);
 
 				}
-
+				//判断当前相机跟正在使用的相机是否一样
 				if (_currentCamera !== camera) {
-
 					_currentCamera = camera;
-
 					// lighting uniforms depend on the camera so enforce an update
 					// now, in case this material supports lights - or later, when
 					// the next material that does gets activated:
-
 					refreshMaterial = true;		// set to true on material change
 					refreshLights = true;		// remains set until update done
-
 				}
-
 			}
 
 			// skinning and morph target uniforms must be set even if material didn't change
