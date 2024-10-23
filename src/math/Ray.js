@@ -12,10 +12,10 @@ const _normal = /*@__PURE__*/ new Vector3();
 class Ray {
 
 	constructor( origin = new Vector3(), direction = new Vector3( 0, 0, - 1 ) ) {
-
-		this.origin = origin;
-		this.direction = direction;
-
+		// 初始化原点的值为传入的origin参数，如果未传入则默认为一个新的Vector3对象
+		this.origin = origin;// 设置原点坐标
+		// 初始化方向向量的值为传入的direction参数，如果未传入则默认为(0, 0, -1)
+		this.direction = direction;// 设置方向向量
 	}
 
 	/**
@@ -43,17 +43,18 @@ class Ray {
 
 	}
 
+
 	/**
-	 * 在指定时间 t 到达目标点 target 的位置
+	 * 根据时间 t 和目标对象 target 计算并返回新的位置
 	 *
-	 * @param t 时间
-	 * @param target 目标点
-	 * @returns 返回目标点 target 在时间 t 时的位置
+	 * @param {number} t - 时间参数，表示动画的进度
+	 * @param {Object} target - 目标对象，应包含 copy 和 addScaledVector 方法
+	 * @returns {Object} 返回根据时间 t 计算得到的新位置对象
 	 */
 	at( t, target ) {
-
+		// 将this.origin的值赋值为target，并将结果通过this.direction和t进行缩放后，将结果赋值给target
+		// this.origin为起始点，this.direction为方向向量，t为时间或比例因子
 		return target.copy( this.origin ).addScaledVector( this.direction, t );
-
 	}
 
 	/**
@@ -64,16 +65,21 @@ class Ray {
 	 */
 	lookAt( v ) {
 
+		// 将方向向量设置为向量v
+		// 然后从原点减去向量v，得到新的方向向量
+		// 最后对新的方向向量进行归一化处理
 		this.direction.copy( v ).sub( this.origin ).normalize();
 
+		// 返回当前对象
 		return this;
 
 	}
 
 	/**
-	 * 重置物体位置
+	 * 根据给定的时间 t，将当前对象的位置设置为在该时间 t 下，路径上对应的位置，并返回当前对象
 	 *
-	 * @param t 时间值
+	 * @param t 时间，类型为 number
+	 * @param _vector 一个临时向量，用于计算路径上的位置，类型为 THREE.Vector3
 	 * @returns 返回当前对象
 	 */
 	recast( t ) {
@@ -107,6 +113,12 @@ class Ray {
 
 	}
 
+	/**
+	 * 计算当前点到指定点的欧氏距离
+	 *
+	 * @param point {Object} - 指定点的坐标对象，格式为 {x: Number, y: Number}
+	 * @returns {Number} - 当前点到指定点的欧氏距离
+	 */
 	distanceToPoint( point ) {
 
 		return Math.sqrt( this.distanceSqToPoint( point ) );
@@ -115,22 +127,37 @@ class Ray {
 
 	distanceSqToPoint( point ) {
 
+		// 计算点相对于原点的方向向量与射线方向的点积
 		const directionDistance = _vector.subVectors( point, this.origin ).dot( this.direction );
 
+		// 如果点在射线后面
 		// point behind the ray
 
+		// 如果方向距离小于0，则点位于射线之后
 		if ( directionDistance < 0 ) {
 
+			// 返回原点到点的平方距离
 			return this.origin.distanceToSquared( point );
 
 		}
 
+		// 在射线上找到距离原点方向距离为directionDistance的点
 		_vector.copy( this.origin ).addScaledVector( this.direction, directionDistance );
 
+		// 返回找到的点到点的平方距离
 		return _vector.distanceToSquared( point );
 
 	}
 
+	/**
+	 * 计算射线与线段之间的最小距离的平方
+	 *
+	 * @param v0 线段的起点坐标
+	 * @param v1 线段的终点坐标
+	 * @param optionalPointOnRay 可选参数，用于存储射线上距离线段最近的点
+	 * @param optionalPointOnSegment 可选参数，用于存储线段上距离射线最近的点
+	 * @returns 返回射线与线段之间的最小距离的平方
+	 */
 	distanceSqToSegment( v0, v1, optionalPointOnRay, optionalPointOnSegment ) {
 
 		// from https://github.com/pmjoniak/GeometricTools/blob/master/GTEngine/Include/Mathematics/GteDistRaySegment.h
@@ -250,6 +277,13 @@ class Ray {
 
 	}
 
+	/**
+	 * 判断射线是否与球体相交，并返回交点
+	 *
+	 * @param sphere 球体对象，包含 center 和 radius 属性
+	 * @param target 用于存储交点的向量对象
+	 * @returns 如果射线与球体相交，则返回交点向量对象；否则返回 null
+	 */
 	intersectSphere( sphere, target ) {
 
 		_vector.subVectors( sphere.center, this.origin );
@@ -286,6 +320,12 @@ class Ray {
 
 	}
 
+	/**
+	 * 计算射线到平面的距离
+	 *
+	 * @param plane 平面对象，需要包含normal属性（平面法线向量）和constant属性（平面方程常数项）
+	 * @returns 返回射线与平面的交点参数t。如果射线与平面平行且射线起点不在平面上，则返回null；如果射线与平面平行且射线起点在平面上，则返回0。
+	 */
 	distanceToPlane( plane ) {
 
 		const denominator = plane.normal.dot( this.direction );
@@ -313,6 +353,13 @@ class Ray {
 
 	}
 
+	/**
+	 * 判断当前射线是否与指定平面相交，并返回交点。
+	 *
+	 * @param plane 平面对象，包含平面的法线向量和平面上任意一点。
+	 * @param target （可选）用于存储交点的向量对象。如果未提供，则创建一个新的THREE.Vector3对象作为返回值。
+	 * @returns 如果射线与平面相交，则返回交点向量；否则返回null。
+	 */
 	intersectPlane( plane, target ) {
 
 		const t = this.distanceToPlane( plane );
@@ -353,6 +400,13 @@ class Ray {
 
 	}
 
+	/**
+	 * 判断射线是否与盒子相交，并返回最近的交点
+	 *
+	 * @param box {Object} - 要判断的盒子的边界信息，包括min和max属性，分别代表盒子的最小和最大坐标点
+	 * @param target {Object} - 如果存在交点，则交点坐标会被保存在target对象中
+	 * @returns {Object|null} - 如果射线与盒子相交，则返回最近的交点对象，否则返回null
+	 */
 	intersectBox( box, target ) {
 
 		let tmin, tmax, tymin, tymax, tzmin, tzmax;
@@ -425,6 +479,16 @@ class Ray {
 
 	}
 
+	/**
+	 * 计算射线与三角形的交点
+	 *
+	 * @param a 三角形第一个顶点坐标
+	 * @param b 三角形第二个顶点坐标
+	 * @param c 三角形第三个顶点坐标
+	 * @param backfaceCulling 是否背面剔除
+	 * @param target 目标对象，用于存储交点坐标
+	 * @returns 返回交点坐标，如果没有交点则返回null
+	 */
 	intersectTriangle( a, b, c, backfaceCulling, target ) {
 
 		// Compute the offset origin, edges, and normal.

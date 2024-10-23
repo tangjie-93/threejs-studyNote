@@ -93,6 +93,12 @@ class Vector3 {
 
 	}
 
+	/**
+	 * 复制另一个向量的值到当前向量
+	 *
+	 * @param v 需要复制的向量
+	 * @returns 当前向量的引用
+	 */
 	copy( v ) {
 
 		this.x = v.x;
@@ -133,6 +139,13 @@ class Vector3 {
 
 	}
 
+	/**
+	 * 将向量按比例添加到当前向量的坐标上
+	 *
+	 * @param v 要添加的向量
+	 * @param s 向量的缩放比例
+	 * @returns 返回当前对象
+	 */
 	addScaledVector( v, s ) {
 
 		this.x += v.x * s;

@@ -10,32 +10,54 @@ const _vector2 = /*@__PURE__*/ new Vector2();
 
 class BufferAttribute {
 
+	/**
+	 * 构造函数
+	 *
+	 * @param array TypedArray - 一个TypedArray数组，表示BufferAttribute的数据
+	 * @param itemSize number - 每个元素中的项目数量
+	 * @param normalized boolean - 是否归一化，默认为false
+	 *
+	 * @throws TypeError 如果传入的array不是一个TypedArray，则抛出TypeError异常
+	 */
 	constructor( array, itemSize, normalized = false ) {
 
+		// 判断传入的array是否为数组
 		if ( Array.isArray( array ) ) {
 
+			// 如果array是数组，则抛出TypeError异常，提示THREE.BufferAttribute的array应为TypedArray
 			throw new TypeError( 'THREE.BufferAttribute: array should be a Typed Array.' );
 
 		}
 
+		// 标记当前对象为BufferAttribute类型
 		this.isBufferAttribute = true;
 
+		// 设置对象名称为空字符串
 		this.name = '';
 
+		// 设置array属性
 		this.array = array;
+		// 设置itemSize属性
 		this.itemSize = itemSize;
+		// 根据array和itemSize计算count属性
 		this.count = array !== undefined ? array.length / itemSize : 0;
+		// 设置normalized属性
 		this.normalized = normalized;
 
+		// 设置usage属性为StaticDrawUsage
 		this.usage = StaticDrawUsage;
+		// 设置_updateRange对象的offset属性为0，count属性为-1
 		this._updateRange = { offset: 0, count: - 1 };
+		// 初始化updateRanges数组
 		this.updateRanges = [];
+		// 设置gpuType属性为FloatType
 		this.gpuType = FloatType;
 
+		// 设置version属性为0
 		this.version = 0;
 
 	}
-
+	//给外部去实现
 	onUploadCallback() {}
 
 	set needsUpdate( value ) {

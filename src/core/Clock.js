@@ -2,12 +2,18 @@ class Clock {
 
 	constructor( autoStart = true ) {
 
+		// 设置是否自动启动
+		// 如果autoStart为true，则自动启动；否则不自动启动
 		this.autoStart = autoStart;
 
+		// 初始化开始时间
 		this.startTime = 0;
+		// 初始化上一次的时间
 		this.oldTime = 0;
+		// 初始化已过去的时间
 		this.elapsedTime = 0;
 
+		// 初始化运行状态为停止
 		this.running = false;
 
 	}
